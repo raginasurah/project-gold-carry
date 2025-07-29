@@ -1,0 +1,284 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  TrendingUpIcon, 
+  TrendingDownIcon, 
+  BanknotesIcon,
+  CreditCardIcon,
+  FlagIcon,
+  ExclamationTriangleIcon
+} from '@heroicons/react/24/outline';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+
+const Dashboard = () => {
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState(null);
+
+  // Mock data - replace with API calls
+  useEffect(() => {
+    const mockData = {
+      overview: {
+        totalBalance: 15420.67,
+        monthlyIncome: 8500,
+        monthlyExpenses: 5200,
+        monthlySavings: 3300,
+        savingsRate: 38.8
+      },
+      spendingChart: [
+        { date: 'Mon', amount: 120 },
+        { date: 'Tue', amount: 85 },
+        { date: 'Wed', amount: 200 },
+        { date: 'Thu', amount: 150 },
+        { date: 'Fri', amount: 300 },
+        { date: 'Sat', amount: 180 },
+        { date: 'Sun', amount: 95 }
+      ],
+      categorySpending: [
+        { name: 'Food & Dining', value: 1200, color: '#3B82F6' },
+        { name: 'Transportation', value: 800, color: '#10B981' },
+        { name: 'Entertainment', value: 600, color: '#F59E0B' },
+        { name: 'Shopping', value: 400, color: '#EF4444' },
+        { name: 'Utilities', value: 300, color: '#8B5CF6' }
+      ],
+      recentTransactions: [
+        { id: 1, description: 'Coffee Shop', amount: -4.50, category: 'Food & Dining', date: '2 hours ago' },
+        { id: 2, description: 'Gas Station', amount: -45.00, category: 'Transportation', date: '4 hours ago' },
+        { id: 3, description: 'Salary Deposit', amount: 4250.00, category: 'Income', date: '1 day ago' },
+        { id: 4, description: 'Grocery Store', amount: -85.30, category: 'Food & Dining', date: '2 days ago' },
+        { id: 5, description: 'Netflix Subscription', amount: -15.99, category: 'Entertainment', date: '3 days ago' }
+      ],
+      insights: [
+        {
+          type: 'warning',
+          title: 'Budget Alert',
+          message: 'You\'re 15% over your dining budget this month',
+          icon: ExclamationTriangleIcon
+        },
+        {
+          type: 'success',
+          title: 'Savings Milestone',
+          message: 'You\'ve saved $3,300 this month - great job!',
+          icon: TrendingUpIcon
+        },
+        {
+          type: 'info',
+          title: 'Subscription Review',
+          message: 'You have 3 subscriptions renewing this week',
+          icon: CreditCardIcon
+        }
+      ]
+    };
+
+    setTimeout(() => {
+      setDashboardData(mockData);
+      setLoading(false);
+    }, 1000);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
+  const getInsightIconColor = (type) => {
+    switch (type) {
+      case 'warning':
+        return 'text-warning-600 bg-warning-100';
+      case 'success':
+        return 'text-success-600 bg-success-100';
+      case 'info':
+        return 'text-primary-600 bg-primary-100';
+      default:
+        return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600">Welcome back! Here's your financial overview.</p>
+        </div>
+        <div className="flex space-x-3">
+          <button className="btn-secondary">Export Report</button>
+          <button className="btn-primary">Add Transaction</button>
+        </div>
+      </div>
+
+      {/* Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Balance</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(dashboardData.overview.totalBalance)}</p>
+            </div>
+            <div className="p-3 bg-primary-100 rounded-lg">
+              <BanknotesIcon className="w-6 h-6 text-primary-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <TrendingUpIcon className="w-4 h-4 text-success-600 mr-1" />
+            <span className="text-success-600">+2.5%</span>
+            <span className="text-gray-500 ml-1">from last month</span>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Monthly Income</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(dashboardData.overview.monthlyIncome)}</p>
+            </div>
+            <div className="p-3 bg-success-100 rounded-lg">
+              <TrendingUpIcon className="w-6 h-6 text-success-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <TrendingUpIcon className="w-4 h-4 text-success-600 mr-1" />
+            <span className="text-success-600">+5.2%</span>
+            <span className="text-gray-500 ml-1">from last month</span>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Monthly Expenses</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(dashboardData.overview.monthlyExpenses)}</p>
+            </div>
+            <div className="p-3 bg-danger-100 rounded-lg">
+              <TrendingDownIcon className="w-6 h-6 text-danger-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <TrendingDownIcon className="w-4 h-4 text-danger-600 mr-1" />
+            <span className="text-danger-600">-1.8%</span>
+            <span className="text-gray-500 ml-1">from last month</span>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Savings Rate</p>
+              <p className="text-2xl font-bold text-gray-900">{dashboardData.overview.savingsRate}%</p>
+            </div>
+            <div className="p-3 bg-warning-100 rounded-lg">
+              <FlagIcon className="w-6 h-6 text-warning-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <TrendingUpIcon className="w-4 h-4 text-success-600 mr-1" />
+            <span className="text-success-600">+3.1%</span>
+            <span className="text-gray-500 ml-1">from last month</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Spending Trend Chart */}
+        <div className="card">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Spending Trend</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={dashboardData.spendingChart}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip formatter={(value) => formatCurrency(value)} />
+              <Line type="monotone" dataKey="amount" stroke="#3B82F6" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Category Spending Pie Chart */}
+        <div className="card">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Spending by Category</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={dashboardData.categorySpending}
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              >
+                {dashboardData.categorySpending.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => formatCurrency(value)} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Recent Transactions and Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Transactions */}
+        <div className="card">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
+            <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+              View All
+            </button>
+          </div>
+          <div className="space-y-3">
+            {dashboardData.recentTransactions.map((transaction) => (
+              <div key={transaction.id} className="flex items-center justify-between py-2">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <CreditCardIcon className="w-4 h-4 text-gray-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{transaction.description}</p>
+                    <p className="text-xs text-gray-500">{transaction.category} • {transaction.date}</p>
+                  </div>
+                </div>
+                <span className={`text-sm font-medium ${
+                  transaction.amount > 0 ? 'text-success-600' : 'text-gray-900'
+                }`}>
+                  {transaction.amount > 0 ? '+' : ''}{formatCurrency(transaction.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Insights */}
+        <div className="card">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Insights</h3>
+          <div className="space-y-4">
+            {dashboardData.insights.map((insight, index) => (
+              <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div className={`p-2 rounded-lg ${getInsightIconColor(insight.type)}`}>
+                  <insight.icon className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium text-gray-900">{insight.title}</h4>
+                  <p className="text-sm text-gray-600">{insight.message}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
