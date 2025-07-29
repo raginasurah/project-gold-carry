@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { PaperAirplaneIcon, SparklesIcon, LightBulbIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const AIAssistant = () => {
   const { user } = useAuth();
@@ -54,7 +55,7 @@ const AIAssistant = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:8000/ai/chat', {
+      const response = await axios.post(`${API_BASE_URL}/ai/chat`, {
         message: messageText
       });
 
