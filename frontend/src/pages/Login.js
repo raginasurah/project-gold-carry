@@ -166,7 +166,7 @@ const Login = () => {
           <h3 className="text-sm font-medium text-gray-900 mb-2">Demo Credentials</h3>
           <div className="text-xs text-gray-600 space-y-1">
             <p><strong>Email:</strong> demo@example.com</p>
-            <p><strong>Password:</strong> password123</p>
+            <p><strong>Password:</strong> demo123</p>
           </div>
         </div>
 
