@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PlusIcon, ChartBarIcon, CogIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ChartBarIcon, CogIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const Budget = () => {
@@ -7,6 +7,11 @@ const Budget = () => {
   const [monthlyIncome, setMonthlyIncome] = useState(5000);
   const [budgets, setBudgets] = useState([]);
   const [showAddBudget, setShowAddBudget] = useState(false);
+  const [newBudget, setNewBudget] = useState({
+    category: '',
+    budget: '',
+    type: 'needs'
+  });
 
   const budgetingMethods = [
     {
@@ -100,6 +105,31 @@ const Budget = () => {
     }).format(amount);
   };
 
+  const handleAddBudget = () => {
+    if (newBudget.category && newBudget.budget) {
+      const budget = {
+        id: Date.now(),
+        category: newBudget.category,
+        budget: parseFloat(newBudget.budget),
+        spent: 0,
+        type: newBudget.type
+      };
+      setBudgets([...budgets, budget]);
+      setNewBudget({
+        category: '',
+        budget: '',
+        type: 'needs'
+      });
+      setShowAddBudget(false);
+    }
+  };
+
+  const budgetTypes = ['needs', 'wants', 'savings'];
+  const budgetCategories = [
+    'Housing', 'Transportation', 'Food & Dining', 'Utilities', 
+    'Healthcare', 'Entertainment', 'Shopping', 'Education', 'Savings', 'Emergency Fund'
+  ];
+
   const allocation = calculateBudgetAllocation();
 
   return (
@@ -110,7 +140,10 @@ const Budget = () => {
           <h1 className="text-2xl font-bold text-gray-900">Budget Management</h1>
           <p className="text-gray-600">Track and manage your spending with smart budgeting</p>
         </div>
-        <button className="btn-primary flex items-center">
+        <button 
+          onClick={() => setShowAddBudget(true)}
+          className="btn-primary flex items-center cursor-pointer"
+        >
           <PlusIcon className="w-4 h-4 mr-2" />
           Add Budget
         </button>
@@ -270,6 +303,79 @@ const Budget = () => {
           </div>
         </div>
       </div>
+
+      {/* Add Budget Modal */}
+      {showAddBudget && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Add Budget Category</h2>
+              <button 
+                onClick={() => setShowAddBudget(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select
+                  value={newBudget.category}
+                  onChange={(e) => setNewBudget({...newBudget, category: e.target.value})}
+                  className="input-field w-full"
+                >
+                  <option value="">Select category</option>
+                  {budgetCategories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Budget Amount</label>
+                <input
+                  type="number"
+                  value={newBudget.budget}
+                  onChange={(e) => setNewBudget({...newBudget, budget: e.target.value})}
+                  className="input-field w-full"
+                  placeholder="0.00"
+                  step="0.01"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select
+                  value={newBudget.type}
+                  onChange={(e) => setNewBudget({...newBudget, type: e.target.value})}
+                  className="input-field w-full"
+                >
+                  {budgetTypes.map(type => (
+                    <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => setShowAddBudget(false)}
+                className="flex-1 btn-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddBudget}
+                className="flex-1 btn-primary"
+              >
+                Add Budget
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

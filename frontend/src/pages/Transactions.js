@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { PlusIcon, FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, FunnelIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newTransaction, setNewTransaction] = useState({
+    description: '',
+    amount: '',
+    category: '',
+    type: 'expense',
+    date: new Date().toISOString().split('T')[0]
+  });
 
   // Mock transactions data
   useEffect(() => {
@@ -43,6 +51,33 @@ const Transactions = () => {
     return matchesFilter && matchesSearch;
   });
 
+  const handleAddTransaction = () => {
+    if (newTransaction.description && newTransaction.amount && newTransaction.category) {
+      const transaction = {
+        id: Date.now(),
+        description: newTransaction.description,
+        amount: newTransaction.type === 'expense' ? -parseFloat(newTransaction.amount) : parseFloat(newTransaction.amount),
+        category: newTransaction.category,
+        date: newTransaction.date,
+        type: newTransaction.type
+      };
+      setTransactions([transaction, ...transactions]);
+      setNewTransaction({
+        description: '',
+        amount: '',
+        category: '',
+        type: 'expense',
+        date: new Date().toISOString().split('T')[0]
+      });
+      setShowAddModal(false);
+    }
+  };
+
+  const categories = [
+    'Food & Dining', 'Transportation', 'Entertainment', 'Shopping', 
+    'Utilities', 'Healthcare', 'Education', 'Income', 'Other'
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -51,7 +86,10 @@ const Transactions = () => {
           <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
           <p className="text-gray-600">Track and manage your financial transactions</p>
         </div>
-        <button className="btn-primary flex items-center">
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="btn-primary flex items-center cursor-pointer"
+        >
           <PlusIcon className="w-4 h-4 mr-2" />
           Add Transaction
         </button>
@@ -118,6 +156,99 @@ const Transactions = () => {
           ))}
         </div>
       </div>
+
+      {/* Add Transaction Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Add Transaction</h2>
+              <button 
+                onClick={() => setShowAddModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <input
+                  type="text"
+                  value={newTransaction.description}
+                  onChange={(e) => setNewTransaction({...newTransaction, description: e.target.value})}
+                  className="input-field w-full"
+                  placeholder="Enter transaction description"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                <input
+                  type="number"
+                  value={newTransaction.amount}
+                  onChange={(e) => setNewTransaction({...newTransaction, amount: e.target.value})}
+                  className="input-field w-full"
+                  placeholder="0.00"
+                  step="0.01"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select
+                  value={newTransaction.category}
+                  onChange={(e) => setNewTransaction({...newTransaction, category: e.target.value})}
+                  className="input-field w-full"
+                >
+                  <option value="">Select category</option>
+                  {categories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select
+                  value={newTransaction.type}
+                  onChange={(e) => setNewTransaction({...newTransaction, type: e.target.value})}
+                  className="input-field w-full"
+                >
+                  <option value="expense">Expense</option>
+                  <option value="income">Income</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <input
+                  type="date"
+                  value={newTransaction.date}
+                  onChange={(e) => setNewTransaction({...newTransaction, date: e.target.value})}
+                  className="input-field w-full"
+                />
+              </div>
+            </div>
+            
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="flex-1 btn-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddTransaction}
+                className="flex-1 btn-primary"
+              >
+                Add Transaction
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

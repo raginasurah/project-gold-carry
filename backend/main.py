@@ -18,7 +18,8 @@ app.add_middleware(
         "http://localhost:3000", 
         "https://*.vercel.app", 
         "https://*.onrender.com",
-        "https://project-gold-carry-izdy-ks2uwwirl-raginasurahs-projects.vercel.app"
+        "https://project-gold-carry-izdy-ks2uwwirl-raginasurahs-projects.vercel.app",
+        "https://project-gold-carry-izdy-qwks04yxr-raginasurahs-projects.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],

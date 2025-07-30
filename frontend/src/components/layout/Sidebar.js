@@ -54,15 +54,24 @@ const Sidebar = () => {
             Quick Actions
           </h3>
           <div className="space-y-2">
-            <button className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors duration-200">
+            <button 
+              onClick={() => window.location.href = '/transactions'}
+              className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors duration-200 cursor-pointer"
+            >
               <div className="w-2 h-2 bg-success-500 rounded-full mr-3"></div>
               Add Transaction
             </button>
-            <button className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors duration-200">
+            <button 
+              onClick={() => window.location.href = '/budget'}
+              className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors duration-200 cursor-pointer"
+            >
               <div className="w-2 h-2 bg-primary-500 rounded-full mr-3"></div>
               Set Budget
             </button>
-            <button className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors duration-200">
+            <button 
+              onClick={() => window.location.href = '/goals'}
+              className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors duration-200 cursor-pointer"
+            >
               <div className="w-2 h-2 bg-warning-500 rounded-full mr-3"></div>
               Create Goal
             </button>
