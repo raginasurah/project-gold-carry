@@ -96,10 +96,14 @@ async def register(user: UserCreate):
     }
     return users_db[user_id]
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
 @app.post("/auth/login")
-async def login(email: str, password: str):
+async def login(login_data: LoginRequest):
     for user in users_db.values():
-        if user["email"] == email and user["password"] == password:
+        if user["email"] == login_data.email and user["password"] == login_data.password:
             return {"access_token": f"mock_token_{user['id']}", "user": user}
     raise HTTPException(status_code=401, detail="Invalid credentials")
 
