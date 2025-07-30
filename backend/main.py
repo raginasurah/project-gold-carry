@@ -14,7 +14,7 @@ app = FastAPI(title="AI Finance API", version="1.0.0")
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://your-frontend-domain.vercel.app", "*"],
+    allow_origins=["http://localhost:3000", "https://*.vercel.app", "https://*.onrender.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
