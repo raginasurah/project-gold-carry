@@ -79,6 +79,38 @@ transactions_db = {}
 subscriptions_db = {}
 goals_db = {}
 
+# Add demo user for testing
+demo_user_id = "demo-user-123"
+users_db[demo_user_id] = {
+    "id": demo_user_id,
+    "email": "demo@example.com",
+    "password": "demo123",
+    "first_name": "Demo",
+    "last_name": "User",
+    "created_at": datetime.now()
+}
+
+# Add some demo data
+budgets_db["demo-budget-1"] = {
+    "id": "demo-budget-1",
+    "user_id": demo_user_id,
+    "name": "Groceries",
+    "amount": 500.0,
+    "category": "Food",
+    "budget_type": "50/30/20",
+    "created_at": datetime.now()
+}
+
+transactions_db["demo-transaction-1"] = {
+    "id": "demo-transaction-1",
+    "user_id": demo_user_id,
+    "amount": 45.67,
+    "description": "Coffee Shop",
+    "category": "Food",
+    "date": datetime.now(),
+    "created_at": datetime.now()
+}
+
 @app.get("/")
 async def root():
     return {"message": "AI Finance API is running"}
@@ -152,9 +184,6 @@ async def get_transactions(current_user: dict = Depends(get_current_user)):
 
 @app.post("/ai/chat")
 async def ai_chat(message: AIChatMessage, current_user: dict = Depends(get_current_user)):
-    if not OPENAI_API_KEY:
-        raise HTTPException(status_code=500, detail="OpenAI API key not configured")
-    
     # Get user's financial context
     user_transactions = [t for t in transactions_db.values() if t["user_id"] == current_user["id"]]
     user_budgets = [b for b in budgets_db.values() if b["user_id"] == current_user["id"]]
@@ -165,29 +194,45 @@ async def ai_chat(message: AIChatMessage, current_user: dict = Depends(get_curre
         "user": current_user
     }
     
+    # If OpenAI API key is not configured, return a helpful response
+    if not OPENAI_API_KEY:
+        return {
+            "response": f"I'm your AI financial coach! I can see you have {len(user_transactions)} transactions and {len(user_budgets)} budgets. "
+                       f"Your message: '{message.message}'. To enable full AI features, please configure the OpenAI API key in the backend environment variables."
+        }
+    
     # Prepare OpenAI API call
     system_prompt = """You are an AI financial coach. Help users with budgeting, saving, investing, and financial planning. 
     Be encouraging, practical, and provide actionable advice. Use the user's financial data to give personalized recommendations."""
     
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
-            json={
-                "model": "gpt-3.5-turbo",
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"User context: {json.dumps(context)}\n\nUser message: {message.message}"}
-                ],
-                "max_tokens": 500
-            }
-        )
-        
-        if response.status_code != 200:
-            raise HTTPException(status_code=500, detail="OpenAI API error")
-        
-        ai_response = response.json()["choices"][0]["message"]["content"]
-        return {"response": ai_response}
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
+                json={
+                    "model": "gpt-3.5-turbo",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": f"User context: {json.dumps(context)}\n\nUser message: {message.message}"}
+                    ],
+                    "max_tokens": 500
+                }
+            )
+            
+            if response.status_code != 200:
+                return {
+                    "response": f"I'm having trouble connecting to my AI services right now. "
+                               f"Your message: '{message.message}'. Please try again later or contact support."
+                }
+            
+            ai_response = response.json()["choices"][0]["message"]["content"]
+            return {"response": ai_response}
+    except Exception as e:
+        return {
+            "response": f"I'm experiencing some technical difficulties. "
+                       f"Your message: '{message.message}'. Please try again later."
+        }
 
 @app.post("/subscriptions")
 async def create_subscription(subscription: SubscriptionCreate, current_user: dict = Depends(get_current_user)):
