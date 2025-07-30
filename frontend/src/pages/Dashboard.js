@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  TrendingUpIcon, 
-  TrendingDownIcon, 
+  ArrowTrendingUpIcon, 
+  ArrowTrendingDownIcon, 
   BanknotesIcon,
   CreditCardIcon,
   FlagIcon,
@@ -57,7 +57,7 @@ const Dashboard = () => {
           type: 'success',
           title: 'Savings Milestone',
           message: 'You\'ve saved $3,300 this month - great job!',
-          icon: TrendingUpIcon
+          icon: ArrowTrendingUpIcon
         },
         {
           type: 'info',
@@ -129,7 +129,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <TrendingUpIcon className="w-4 h-4 text-success-600 mr-1" />
+            <ArrowTrendingUpIcon className="w-4 h-4 text-success-600 mr-1" />
             <span className="text-success-600">+2.5%</span>
             <span className="text-gray-500 ml-1">from last month</span>
           </div>
@@ -142,11 +142,11 @@ const Dashboard = () => {
               <p className="text-2xl font-bold text-gray-900">{formatCurrency(dashboardData.overview.monthlyIncome)}</p>
             </div>
             <div className="p-3 bg-success-100 rounded-lg">
-              <TrendingUpIcon className="w-6 h-6 text-success-600" />
+              <ArrowTrendingUpIcon className="w-6 h-6 text-success-600" />
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <TrendingUpIcon className="w-4 h-4 text-success-600 mr-1" />
+            <ArrowTrendingUpIcon className="w-4 h-4 text-success-600 mr-1" />
             <span className="text-success-600">+5.2%</span>
             <span className="text-gray-500 ml-1">from last month</span>
           </div>
@@ -159,11 +159,11 @@ const Dashboard = () => {
               <p className="text-2xl font-bold text-gray-900">{formatCurrency(dashboardData.overview.monthlyExpenses)}</p>
             </div>
             <div className="p-3 bg-danger-100 rounded-lg">
-              <TrendingDownIcon className="w-6 h-6 text-danger-600" />
+              <ArrowTrendingDownIcon className="w-6 h-6 text-danger-600" />
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <TrendingDownIcon className="w-4 h-4 text-danger-600 mr-1" />
+            <ArrowTrendingDownIcon className="w-4 h-4 text-danger-600 mr-1" />
             <span className="text-danger-600">-1.8%</span>
             <span className="text-gray-500 ml-1">from last month</span>
           </div>
@@ -180,7 +180,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <TrendingUpIcon className="w-4 h-4 text-success-600 mr-1" />
+            <ArrowTrendingUpIcon className="w-4 h-4 text-success-600 mr-1" />
             <span className="text-success-600">+3.1%</span>
             <span className="text-gray-500 ml-1">from last month</span>
           </div>
