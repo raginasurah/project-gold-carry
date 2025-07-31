@@ -11,21 +11,11 @@ import uuid
 
 app = FastAPI(title="AI Finance API", version="1.0.0")
 
-# CORS middleware - More permissive for development
+# CORS middleware - Allow all origins for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000", 
-        "https://*.vercel.app", 
-        "https://*.onrender.com",
-        "https://project-gold-carry-izdy-ks2uwwirl-raginasurahs-projects.vercel.app",
-        "https://project-gold-carry-izdy-qwks04yxr-raginasurahs-projects.vercel.app",
-        "https://project-gold-carry-izdy-g5urk48le-raginasurahs-projects.vercel.app",
-        "https://project-gold-carry-izdy-production.vercel.app",
-        "https://project-gold-carry-izdy-ocub2hlc8-raginasurahs-projects.vercel.app",
-        "https://project-gold-carry-izdy-*.vercel.app"  # Wildcard for all preview URLs
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],  # Allow all origins for now
+    allow_credentials=False,  # Must be False when using allow_origins=["*"]
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
     expose_headers=["*"],
@@ -128,8 +118,17 @@ async def options_handler(full_path: str):
 
 @app.post("/auth/register", response_model=UserResponse)
 async def register(user: UserCreate):
+    print(f"Registration attempt for email: {user.email}")
+    
+    # Check if user exists
+    for existing_user in users_db.values():
+        if existing_user["email"] == user.email:
+            print(f"User already exists: {user.email}")
+            raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create new user
     user_id = str(uuid.uuid4())
-    users_db[user_id] = {
+    new_user = {
         "id": user_id,
         "email": user.email,
         "password": user.password,  # In production, hash this
@@ -137,7 +136,12 @@ async def register(user: UserCreate):
         "last_name": user.last_name,
         "created_at": datetime.now()
     }
-    return users_db[user_id]
+    
+    users_db[user_id] = new_user
+    print(f"User registered successfully: {user.email} with ID: {user_id}")
+    print(f"Total users in database: {len(users_db)}")
+    
+    return new_user
 
 class LoginRequest(BaseModel):
     email: str
@@ -145,9 +149,15 @@ class LoginRequest(BaseModel):
 
 @app.post("/auth/login")
 async def login(login_data: LoginRequest):
+    print(f"Login attempt for email: {login_data.email}")
+    print(f"Total users in database: {len(users_db)}")
+    
     for user in users_db.values():
         if user["email"] == login_data.email and user["password"] == login_data.password:
+            print(f"Login successful for: {login_data.email}")
             return {"access_token": f"mock_token_{user['id']}", "user": user}
+    
+    print(f"Login failed for: {login_data.email} - Invalid credentials")
     raise HTTPException(status_code=401, detail="Invalid credentials")
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):

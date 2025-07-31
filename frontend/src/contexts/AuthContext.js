@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
+// Configure axios defaults
+axios.defaults.withCredentials = false;
+
 const AuthContext = createContext();
 
 export const useAuth = () => {
