@@ -22,7 +22,9 @@ const Budget = () => {
         needs: 50,
         wants: 30,
         savings: 20
-      }
+      },
+      color: 'primary',
+      icon: '📊'
     },
     {
       id: 'Zero-based',
@@ -32,7 +34,9 @@ const Budget = () => {
         needs: 60,
         wants: 25,
         savings: 15
-      }
+      },
+      color: 'success',
+      icon: '🎯'
     },
     {
       id: '70/20/10',
@@ -42,7 +46,9 @@ const Budget = () => {
         needs: 70,
         savings: 20,
         debt: 10
-      }
+      },
+      color: 'warning',
+      icon: '💰'
     },
     {
       id: '60%',
@@ -51,7 +57,9 @@ const Budget = () => {
       breakdown: {
         committed: 60,
         flexible: 40
-      }
+      },
+      color: 'info',
+      icon: '⚖️'
     }
   ];
 
@@ -98,10 +106,27 @@ const Budget = () => {
     return 'bg-success-500';
   };
 
+  const getBudgetAlerts = () => {
+    return budgets.filter(budget => {
+      const percentage = (budget.spent / budget.budget) * 100;
+      return percentage >= 75;
+    });
+  };
+
+  const getMethodColor = (color) => {
+    switch (color) {
+      case 'primary': return 'border-primary-500 bg-primary-50';
+      case 'success': return 'border-success-500 bg-success-50';
+      case 'warning': return 'border-warning-500 bg-warning-50';
+      case 'info': return 'border-info-500 bg-info-50';
+      default: return 'border-gray-300 bg-gray-50';
+    }
+  };
+
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-GB', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'GBP'
     }).format(amount);
   };
 
@@ -166,11 +191,14 @@ const Budget = () => {
               onClick={() => setSelectedMethod(method.id)}
               className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                 selectedMethod === method.id
-                  ? 'border-primary-500 bg-primary-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? getMethodColor(method.color)
+                  : 'border-gray-200 hover:border-gray-300 bg-white'
               }`}
             >
-              <h3 className="font-semibold text-gray-900 mb-1">{method.name}</h3>
+              <div className="flex items-center space-x-2 mb-2">
+                <span className="text-lg">{method.icon}</span>
+                <h3 className="font-semibold text-gray-900">{method.name}</h3>
+              </div>
               <p className="text-sm text-gray-600">{method.description}</p>
             </button>
           ))}
@@ -226,6 +254,33 @@ const Budget = () => {
           </div>
         </div>
       </div>
+
+      {/* Budget Alerts */}
+      {getBudgetAlerts().length > 0 && (
+        <div className="card bg-warning-50 border-warning-200">
+          <h2 className="text-lg font-semibold text-warning-900 mb-4">⚠️ Budget Alerts</h2>
+          <div className="space-y-3">
+            {getBudgetAlerts().map((budget) => (
+              <div key={budget.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
+                <div>
+                  <p className="font-medium text-gray-900">{budget.category}</p>
+                  <p className="text-sm text-gray-600">
+                    {((budget.spent / budget.budget) * 100).toFixed(1)}% of budget used
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-warning-600">
+                    {formatCurrency(budget.spent)} / {formatCurrency(budget.budget)}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {budget.spent > budget.budget ? 'Over budget' : 'Near limit'}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Budget Categories */}
       <div className="card">

@@ -198,10 +198,26 @@ async def ai_chat(message: AIChatMessage, current_user: dict = Depends(get_curre
     
     # If OpenAI API key is not configured, return a helpful response
     if not OPENAI_API_KEY:
-        return {
-            "response": f"I'm your AI financial coach! I can see you have {len(user_transactions)} transactions and {len(user_budgets)} budgets. "
-                       f"Your message: '{message.message}'. To enable full AI features, please configure the OpenAI API key in the backend environment variables."
-        }
+        # Provide more helpful responses based on user data
+        if len(user_transactions) == 0 and len(user_budgets) == 0:
+            return {
+                "response": "Welcome to your AI financial coach! I can see you're just getting started. Here are some tips to begin:\n\n" +
+                           "1. **Add your first transaction** - Start tracking your spending\n" +
+                           "2. **Create a budget** - Set spending limits for different categories\n" +
+                           "3. **Set financial goals** - Plan for your future\n\n" +
+                           f"Your question: '{message.message}'\n\n" +
+                           "💡 **Pro Tip**: To get personalized AI advice, add your OpenAI API key in the backend settings."
+            }
+        else:
+            return {
+                "response": f"Great! I can see you have {len(user_transactions)} transactions and {len(user_budgets)} budgets set up. "
+                           f"Your question: '{message.message}'\n\n" +
+                           "Based on your current data, here are some insights:\n" +
+                           f"• You're actively tracking {len(user_transactions)} financial activities\n" +
+                           f"• You have {len(user_budgets)} budget categories\n" +
+                           "• Keep up the good work with your financial tracking!\n\n" +
+                           "💡 **Pro Tip**: To get personalized AI advice, add your OpenAI API key in the backend settings."
+            }
     
     # Prepare OpenAI API call
     system_prompt = """You are an AI financial coach. Help users with budgeting, saving, investing, and financial planning. 
