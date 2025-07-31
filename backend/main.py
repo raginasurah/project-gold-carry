@@ -11,7 +11,7 @@ import uuid
 
 app = FastAPI(title="AI Finance API", version="1.0.0")
 
-# CORS middleware
+# CORS middleware - More permissive for development
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -22,11 +22,13 @@ app.add_middleware(
         "https://project-gold-carry-izdy-qwks04yxr-raginasurahs-projects.vercel.app",
         "https://project-gold-carry-izdy-g5urk48le-raginasurahs-projects.vercel.app",
         "https://project-gold-carry-izdy-production.vercel.app",
-        "https://project-gold-carry-izdy-ocub2hlc8-raginasurahs-projects.vercel.app"
+        "https://project-gold-carry-izdy-ocub2hlc8-raginasurahs-projects.vercel.app",
+        "https://project-gold-carry-izdy-*.vercel.app"  # Wildcard for all preview URLs
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Security
@@ -118,6 +120,11 @@ transactions_db["demo-transaction-1"] = {
 @app.get("/")
 async def root():
     return {"message": "AI Finance API is running"}
+
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    """Handle OPTIONS requests for CORS preflight"""
+    return {"message": "OK"}
 
 @app.post("/auth/register", response_model=UserResponse)
 async def register(user: UserCreate):
