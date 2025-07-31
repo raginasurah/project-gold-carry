@@ -23,6 +23,25 @@ const Navbar = () => {
     monthlySavings: 1250.00
   };
 
+  // Currency formatting function
+  const formatCurrency = (amount) => {
+    const settings = JSON.parse(localStorage.getItem('financeAppSettings') || '{}');
+    const currency = settings.preferences?.currency || 'GBP';
+    const locale = currency === 'USD' ? 'en-US' : 'en-GB';
+    
+    try {
+      return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(amount);
+    } catch (error) {
+      const symbol = currency === 'USD' ? '$' : '£';
+      return `${symbol}${amount.toFixed(2)}`;
+    }
+  };
+
   const getWeeklyStatusColor = (status) => {
     switch (status) {
       case 'on_track':
@@ -67,7 +86,7 @@ const Navbar = () => {
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-500">Today:</span>
                 <span className="text-sm font-medium text-gray-900">
-                  ${quickStats.spendingToday}
+                  {formatCurrency(quickStats.spendingToday)}
                 </span>
               </div>
 
@@ -91,7 +110,7 @@ const Navbar = () => {
                   {showBalance ? (
                     <>
                       <span className="text-sm font-medium text-success-600">
-                        ${quickStats.monthlySavings.toLocaleString()}
+                        {formatCurrency(quickStats.monthlySavings)}
                       </span>
                       <button
                         onClick={() => setShowBalance(false)}

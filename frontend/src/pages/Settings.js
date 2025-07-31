@@ -7,10 +7,11 @@ import {
   MoonIcon,
   CheckIcon
 } from '@heroicons/react/24/outline';
+import { useSettings } from '../contexts/SettingsContext';
 
 const Settings = () => {
+  const { settings: globalSettings, updateSetting, saveStatus, showToast, exportSettings } = useSettings();
   const [activeTab, setActiveTab] = useState('profile');
-  const [settings, setSettings] = useState({
     profile: {
       firstName: 'Rinoz',
       lastName: 'Razick',
