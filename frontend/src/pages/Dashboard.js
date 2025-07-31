@@ -147,7 +147,7 @@ const Dashboard = () => {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
@@ -218,11 +218,11 @@ const Dashboard = () => {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Spending Trend Chart */}
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Spending Trend</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={250} className="md:h-[300px]">
             <LineChart data={dashboardData.spendingChart}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
@@ -236,7 +236,7 @@ const Dashboard = () => {
         {/* Category Spending Pie Chart */}
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Spending by Category</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={250} className="md:h-[300px]">
             <PieChart>
               <Pie
                 data={dashboardData.categorySpending}
@@ -258,7 +258,7 @@ const Dashboard = () => {
       </div>
 
       {/* Recent Transactions and Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Recent Transactions */}
         <div className="card">
           <div className="flex justify-between items-center mb-4">
