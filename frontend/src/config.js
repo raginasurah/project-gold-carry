@@ -5,7 +5,7 @@ const config = {
   },
   // Production
   production: {
-    apiUrl: process.env.REACT_APP_API_URL || 'https://your-railway-app.up.railway.app'
+    apiUrl: process.env.REACT_APP_API_URL || 'https://project-gold-backend-production-3d89.up.railway.app'
   }
 };
 
