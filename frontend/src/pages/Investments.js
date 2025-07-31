@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PlusIcon, ChartBarIcon, CurrencyPoundIcon, XMarkIcon, TrendingUpIcon, TrendingDownIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ChartBarIcon, CurrencyPoundIcon, XMarkIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon } from '@heroicons/react/24/outline';
 
 const Investments = () => {
   const [portfolios, setPortfolios] = useState([]);
@@ -123,7 +123,7 @@ const Investments = () => {
   };
 
   const getGainIcon = (gain) => {
-    return gain >= 0 ? TrendingUpIcon : TrendingDownIcon;
+    return gain >= 0 ? ArrowTrendingUpIcon : ArrowTrendingDownIcon;
   };
 
   const handleAddInvestment = () => {
@@ -244,7 +244,7 @@ const Investments = () => {
         <div className="card">
           <div className="flex items-center">
             <div className="p-2 bg-success-100 rounded-lg">
-              <TrendingUpIcon className="w-6 h-6 text-success-600" />
+                              <ArrowTrendingUpIcon className="w-6 h-6 text-success-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Gain</p>
