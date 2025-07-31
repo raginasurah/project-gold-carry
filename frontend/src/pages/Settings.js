@@ -7,11 +7,22 @@ import {
   MoonIcon,
   CheckIcon
 } from '@heroicons/react/24/outline';
+import { useDataPersistence } from '../hooks/useDataPersistence';
+import SyncStatus from '../components/ui/SyncStatus';
 // import { useSettings } from '../contexts/SettingsContext';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
-  const [settings, setSettings] = useState({
+  
+  // Use data persistence hook for settings
+  const {
+    data: settings,
+    setData: setSettings,
+    hasUnsavedChanges,
+    isSaving,
+    lastSaved,
+    saveData: forceSave
+  } = useDataPersistence('SETTINGS', {
     profile: {
       firstName: 'Rinoz',
       lastName: 'Razick',
@@ -40,35 +51,21 @@ const Settings = () => {
       darkMode: false,
       privacyMode: false
     }
+  }, {
+    autoSave: true,
+    syncImmediately: false,
+    debounceMs: 2000,
+    componentName: 'Settings'
   });
 
   const [saveStatus, setSaveStatus] = useState('');
 
-  // Save settings to localStorage
-  useEffect(() => {
-    localStorage.setItem('financeAppSettings', JSON.stringify(settings));
-  }, [settings]);
+  // Settings are automatically saved via useDataPersistence hook
 
-  // Load settings from localStorage on component mount
-  useEffect(() => {
-    const savedSettings = localStorage.getItem('financeAppSettings');
-    if (savedSettings) {
-      try {
-        const parsed = JSON.parse(savedSettings);
-        setSettings(prevSettings => ({
-          ...prevSettings,
-          ...parsed
-        }));
-      } catch (error) {
-        console.error('Error loading settings:', error);
-      }
-    }
-  }, []);
+  // Settings are automatically loaded via useDataPersistence hook
 
-  // Save settings and apply changes when they update
+  // Apply settings changes when they update
   useEffect(() => {
-    localStorage.setItem('financeAppSettings', JSON.stringify(settings));
-    
     // Apply dark mode immediately
     if (settings.preferences?.darkMode) {
       document.body.classList.add('dark');

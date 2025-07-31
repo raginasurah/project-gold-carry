@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import SyncStatus from '../ui/SyncStatus';
 import { 
   BellIcon, 
   UserCircleIcon, 
@@ -83,6 +84,8 @@ const Navbar = () => {
 
             {/* Quick Stats Bar */}
             <div className="hidden md:flex items-center space-x-6">
+              {/* Sync Status */}
+              <SyncStatus className="relative" />
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-500">Today:</span>
                 <span className="text-sm font-medium text-gray-900">
