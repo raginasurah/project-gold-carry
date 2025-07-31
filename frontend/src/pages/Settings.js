@@ -1,5 +1,18 @@
-import React, { useState } from 'react';
-import { CogIcon, BellIcon, ShieldCheckIcon, UserIcon, CurrencyPoundIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect } from 'react';
+import { 
+  CogIcon, 
+  BellIcon, 
+  ShieldCheckIcon, 
+  UserIcon, 
+  CurrencyPoundIcon, 
+  MoonIcon, 
+  SunIcon,
+  CheckIcon,
+  ExclamationTriangleIcon,
+  DevicePhoneMobileIcon,
+  ArrowDownTrayIcon,
+  TrashIcon
+} from '@heroicons/react/24/outline';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -34,6 +47,29 @@ const Settings = () => {
     }
   });
 
+  const [saveStatus, setSaveStatus] = useState('');
+  const [notificationPermission, setNotificationPermission] = useState('default');
+
+  // Check notification permission on load
+  useEffect(() => {
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  // Save settings to localStorage
+  useEffect(() => {
+    localStorage.setItem('financeAppSettings', JSON.stringify(settings));
+  }, [settings]);
+
+  // Load settings from localStorage on component mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('financeAppSettings');
+    if (savedSettings) {
+      setSettings(JSON.parse(savedSettings));
+    }
+  }, []);
+
   const handleSettingChange = (category, setting, value) => {
     setSettings(prev => ({
       ...prev,
@@ -42,6 +78,69 @@ const Settings = () => {
         [setting]: value
       }
     }));
+    
+    // Show save confirmation
+    setSaveStatus('saved');
+    setTimeout(() => setSaveStatus(''), 2000);
+
+    // Apply settings immediately
+    if (category === 'preferences' && setting === 'darkMode') {
+      document.body.classList.toggle('dark', value);
+    }
+  };
+
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      
+      if (permission === 'granted') {
+        // Send a test notification
+        new Notification('AI Finance App', {
+          body: 'Notifications are now enabled! You\'ll receive budget alerts and reminders.',
+          icon: '/favicon.ico'
+        });
+        
+        // Update settings
+        handleSettingChange('notifications', 'pushNotifications', true);
+      }
+    }
+  };
+
+  const sendTestNotification = () => {
+    if (notificationPermission === 'granted') {
+      new Notification('Test Notification', {
+        body: 'This is a test notification from your AI Finance App!',
+        icon: '/favicon.ico'
+      });
+    }
+  };
+
+  const exportData = () => {
+    const dataToExport = {
+      settings,
+      exportDate: new Date().toISOString(),
+      user: 'Demo User'
+    };
+    
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `finance-app-settings-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    setSaveStatus('exported');
+    setTimeout(() => setSaveStatus(''), 2000);
+  };
+
+  const deleteAccount = () => {
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      alert('Account deletion would be processed here. (Demo mode)');
+    }
   };
 
   const tabs = [
@@ -362,7 +461,15 @@ const Settings = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+          {saveStatus && (
+            <div className={`flex items-center px-3 py-1 rounded-lg text-sm font-medium ${
+              saveStatus === 'saved' ? 'bg-success-100 text-success-700' : 'bg-primary-100 text-primary-700'
+            }`}>
+              <CheckIcon className="w-4 h-4 mr-1" />
+              {saveStatus === 'saved' ? 'Settings saved!' : 'Data exported!'}
+            </div>
+          )}
         <p className="text-gray-600">Manage your account preferences and security</p>
       </div>
 
