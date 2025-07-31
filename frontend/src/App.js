@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navbar from './components/layout/Navbar';
@@ -13,6 +13,7 @@ import Goals from './pages/Goals';
 import Subscriptions from './pages/Subscriptions';
 import Investments from './pages/Investments';
 import Settings from './pages/Settings';
+import notificationService from './services/notificationService';
 import './index.css';
 
 // Protected Route Component
@@ -46,6 +47,11 @@ const MainLayout = ({ children }) => {
 };
 
 function App() {
+  // Initialize notification service
+  useEffect(() => {
+    notificationService.startPeriodicNotifications();
+  }, []);
+
   return (
     <AuthProvider>
       <Router>
