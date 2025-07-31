@@ -1,17 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { PlusIcon, ChartBarIcon, CogIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ChartBarIcon, CogIcon, XMarkIcon, CheckCircleIcon, InformationCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { BUDGETING_METHODS, calculateBudgetAllocation, validateBudgetMethod, getBudgetMethodTheme } from '../utils/budgetingMethods';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const Budget = () => {
   const [selectedMethod, setSelectedMethod] = useState('50/30/20');
   const [monthlyIncome, setMonthlyIncome] = useState(5000);
   const [budgets, setBudgets] = useState([]);
+  const [budgetAllocations, setBudgetAllocations] = useState({});
+  const [validation, setValidation] = useState({ isValid: true, warnings: [], recommendations: [] });
   const [showAddBudget, setShowAddBudget] = useState(false);
   const [newBudget, setNewBudget] = useState({
     category: '',
     budget: '',
     type: 'needs'
   });
+
+  // Calculate budget allocations when method or income changes
+  useEffect(() => {
+    try {
+      const allocations = calculateBudgetAllocation(selectedMethod, monthlyIncome);
+      setBudgetAllocations(allocations);
+      
+      // Validate the budget
+      const validationResult = validateBudgetMethod(selectedMethod, allocations, monthlyIncome);
+      setValidation(validationResult);
+      
+      // Save selected method to settings
+      const savedSettings = JSON.parse(localStorage.getItem('financeAppSettings') || '{}');
+      if (!savedSettings.preferences) savedSettings.preferences = {};
+      savedSettings.preferences.budgetingMethod = selectedMethod;
+      localStorage.setItem('financeAppSettings', JSON.stringify(savedSettings));
+      
+    } catch (error) {
+      console.error('Error calculating budget:', error);
+    }
+  }, [selectedMethod, monthlyIncome]);
+
+  // Load saved settings on mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('financeAppSettings');
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings);
+        if (settings.preferences?.budgetingMethod) {
+          setSelectedMethod(settings.preferences.budgetingMethod);
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    }
+  }, []);
 
   const budgetingMethods = [
     {

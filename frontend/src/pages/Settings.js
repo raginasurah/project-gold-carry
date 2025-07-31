@@ -53,9 +53,54 @@ const Settings = () => {
   useEffect(() => {
     const savedSettings = localStorage.getItem('financeAppSettings');
     if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setSettings(prevSettings => ({
+          ...prevSettings,
+          ...parsed
+        }));
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
     }
   }, []);
+
+  // Save settings and apply changes when they update
+  useEffect(() => {
+    localStorage.setItem('financeAppSettings', JSON.stringify(settings));
+    
+    // Apply dark mode immediately
+    if (settings.preferences?.darkMode) {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+  }, [settings]);
+
+  // Toast notification function
+  const showToast = (message, type = 'success') => {
+    const toast = document.createElement('div');
+    const bgColor = type === 'success' ? 'bg-green-500' : 
+                   type === 'error' ? 'bg-red-500' : 
+                   type === 'info' ? 'bg-blue-500' : 'bg-yellow-500';
+    
+    toast.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg text-white shadow-lg ${bgColor} transform transition-all duration-300`;
+    toast.innerHTML = `
+      <div class="flex items-center space-x-2">
+        <span class="text-sm font-medium">${message}</span>
+        <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white hover:text-gray-200 text-lg">&times;</button>
+      </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+      }
+    }, 3000);
+  };
 
   const handleSettingChange = (category, setting, value) => {
     setSettings(prev => ({
@@ -66,14 +111,28 @@ const Settings = () => {
       }
     }));
     
+    // Provide immediate feedback with toasts
+    if (category === 'preferences' && setting === 'currency') {
+      showToast(`Currency changed to ${value === 'GBP' ? 'British Pound (£)' : 'US Dollar ($)'}`, 'success');
+      // Reload to update all currency displays
+      setTimeout(() => window.location.reload(), 1500);
+    } else if (category === 'preferences' && setting === 'darkMode') {
+      showToast(`Dark mode ${value ? 'enabled' : 'disabled'}`, 'success');
+    } else if (category === 'preferences' && setting === 'privacyMode') {
+      showToast(`Privacy mode ${value ? 'enabled' : 'disabled'}`, 'info');
+    } else if (category === 'notifications') {
+      showToast('Notification preferences updated', 'success');
+    } else if (category === 'profile') {
+      showToast('Profile information updated', 'success');
+    } else if (category === 'security') {
+      showToast('Security settings updated', 'info');
+    } else {
+      showToast('Settings saved successfully', 'success');
+    }
+
     // Show save confirmation
     setSaveStatus('saved');
     setTimeout(() => setSaveStatus(''), 2000);
-
-    // Apply settings immediately
-    if (category === 'preferences' && setting === 'darkMode') {
-      document.body.classList.toggle('dark', value);
-    }
   };
 
   // Simplified functions for demo purposes
