@@ -4,14 +4,8 @@ import {
   BellIcon, 
   ShieldCheckIcon, 
   UserIcon, 
-  CurrencyPoundIcon, 
-  MoonIcon, 
-  SunIcon,
-  CheckIcon,
-  ExclamationTriangleIcon,
-  DevicePhoneMobileIcon,
-  ArrowDownTrayIcon,
-  TrashIcon
+  MoonIcon,
+  CheckIcon
 } from '@heroicons/react/24/outline';
 
 const Settings = () => {
@@ -48,14 +42,6 @@ const Settings = () => {
   });
 
   const [saveStatus, setSaveStatus] = useState('');
-  const [notificationPermission, setNotificationPermission] = useState('default');
-
-  // Check notification permission on load
-  useEffect(() => {
-    if ('Notification' in window) {
-      setNotificationPermission(Notification.permission);
-    }
-  }, []);
 
   // Save settings to localStorage
   useEffect(() => {
@@ -89,34 +75,8 @@ const Settings = () => {
     }
   };
 
-  const requestNotificationPermission = async () => {
-    if ('Notification' in window) {
-      const permission = await Notification.requestPermission();
-      setNotificationPermission(permission);
-      
-      if (permission === 'granted') {
-        // Send a test notification
-        new Notification('AI Finance App', {
-          body: 'Notifications are now enabled! You\'ll receive budget alerts and reminders.',
-          icon: '/favicon.ico'
-        });
-        
-        // Update settings
-        handleSettingChange('notifications', 'pushNotifications', true);
-      }
-    }
-  };
-
-  const sendTestNotification = () => {
-    if (notificationPermission === 'granted') {
-      new Notification('Test Notification', {
-        body: 'This is a test notification from your AI Finance App!',
-        icon: '/favicon.ico'
-      });
-    }
-  };
-
-  const exportData = () => {
+  // Simplified functions for demo purposes
+  const handleExportData = () => {
     const dataToExport = {
       settings,
       exportDate: new Date().toISOString(),
@@ -137,7 +97,7 @@ const Settings = () => {
     setTimeout(() => setSaveStatus(''), 2000);
   };
 
-  const deleteAccount = () => {
+  const handleDeleteAccount = () => {
     if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
       alert('Account deletion would be processed here. (Demo mode)');
     }
@@ -213,10 +173,16 @@ const Settings = () => {
           <button className="btn-secondary w-full md:w-auto">
             Change Password
           </button>
-          <button className="btn-secondary w-full md:w-auto">
+          <button 
+            className="btn-secondary w-full md:w-auto"
+            onClick={handleExportData}
+          >
             Export Data
           </button>
-          <button className="btn-danger w-full md:w-auto">
+          <button 
+            className="btn-danger w-full md:w-auto"
+            onClick={handleDeleteAccount}
+          >
             Delete Account
           </button>
         </div>
