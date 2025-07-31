@@ -170,7 +170,10 @@ const Settings = () => {
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Actions</h3>
         <div className="space-y-3">
-          <button className="btn-secondary w-full md:w-auto">
+          <button 
+            className="btn-secondary w-full md:w-auto"
+            onClick={() => alert('Password change functionality would be implemented here (Demo mode)')}
+          >
             Change Password
           </button>
           <button 
@@ -409,13 +412,22 @@ const Settings = () => {
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Data & Privacy</h3>
         <div className="space-y-3">
-          <button className="btn-secondary w-full md:w-auto">
+          <button 
+            className="btn-secondary w-full md:w-auto"
+            onClick={handleExportData}
+          >
             Download My Data
           </button>
-          <button className="btn-secondary w-full md:w-auto">
+          <button 
+            className="btn-secondary w-full md:w-auto"
+            onClick={() => window.open('https://example.com/privacy', '_blank')}
+          >
             Privacy Policy
           </button>
-          <button className="btn-secondary w-full md:w-auto">
+          <button 
+            className="btn-secondary w-full md:w-auto"
+            onClick={() => window.open('https://example.com/terms', '_blank')}
+          >
             Terms of Service
           </button>
         </div>
