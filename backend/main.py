@@ -21,7 +21,8 @@ app.add_middleware(
         "https://project-gold-carry-izdy-ks2uwwirl-raginasurahs-projects.vercel.app",
         "https://project-gold-carry-izdy-qwks04yxr-raginasurahs-projects.vercel.app",
         "https://project-gold-carry-izdy-g5urk48le-raginasurahs-projects.vercel.app",
-        "https://project-gold-carry-izdy-production.vercel.app"
+        "https://project-gold-carry-izdy-production.vercel.app",
+        "https://project-gold-carry-izdy-ocub2hlc8-raginasurahs-projects.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
