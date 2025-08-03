@@ -1,23 +1,20 @@
 #!/usr/bin/env python3
-"""Simple FastAPI application for testing"""
+"""Simple FastAPI application for Railway deployment"""
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
-# Set environment variables
-os.environ['OPENAI_API_KEY'] = 'your-openai-api-key-here'
-
 app = FastAPI(
     title="AI Finance Manager",
     version="1.0.0",
-    debug=True
+    debug=False
 )
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "https://project-gold-carry-izdy.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -47,7 +44,16 @@ async def chat_with_ai(message: dict):
     try:
         from openai import OpenAI
         
-        client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
+        # Get API key from environment
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if not api_key or api_key == 'your-openai-api-key-here':
+            return {
+                "message": "OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.",
+                "conversation_id": "error",
+                "timestamp": "2025-08-03T12:00:00Z"
+            }
+        
+        client = OpenAI(api_key=api_key)
         
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -80,6 +86,6 @@ if __name__ == "__main__":
         "simple_main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True,
+        reload=False,
         log_level="info"
     ) 
