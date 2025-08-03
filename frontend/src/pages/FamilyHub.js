@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatCurrency, useCurrencyListener } from '../utils/currency';
 import { 
   UserPlusIcon, 
   CogIcon, 
@@ -22,9 +23,21 @@ const FamilyHub = () => {
   const [showCreateBudgetModal, setShowCreateBudgetModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [inviteLink, setInviteLink] = useState('');
-  const [familyStats, setFamilyStats] = useState({});
+  const [familyStats, setFamilyStats] = useState({
+    totalMembers: 0,
+    totalBudgets: 0,
+    totalBudgetAmount: 0,
+    totalSpent: 0,
+    spendingPercentage: 0
+  });
   const [notifications, setNotifications] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
+  const [currentCurrency, setCurrentCurrency] = useState('GBP');
+
+  // Listen for currency changes
+  useCurrencyListener((newCurrency) => {
+    setCurrentCurrency(newCurrency);
+  });
 
   const [newMember, setNewMember] = useState({
     name: '',
@@ -41,181 +54,204 @@ const FamilyHub = () => {
     period: 'monthly'
   });
 
-  // Currency formatting
-  const formatCurrency = (amount) => {
-    const settings = JSON.parse(localStorage.getItem('financeAppSettings') || '{}');
-    const currency = settings.preferences?.currency || 'GBP';
-    const locale = currency === 'USD' ? 'en-US' : 'en-GB';
-    
-    try {
-      return new Intl.NumberFormat(locale, {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(amount);
-    } catch (error) {
-      const symbol = currency === 'USD' ? '$' : '£';
-      return `${symbol}${amount.toLocaleString()}`;
-    }
-  };
-
   // Load data on component mount
   useEffect(() => {
-    // Demo family members
-    const demoMembers = [
-      {
-        id: '1',
-        name: 'Rinoz Razick',
-        email: 'rinoz@example.com',
-        role: 'admin',
-        relationship: 'self',
-        joinedDate: '2024-01-15',
-        status: 'active',
-        avatar: '👨‍💼',
-        permissions: ['view', 'edit', 'admin'],
-        lastActivity: 'Now'
-      },
-      {
-        id: '2',
-        name: 'Sarah Razick',
-        email: 'sarah@example.com',
-        role: 'co-manager',
-        relationship: 'partner',
-        joinedDate: '2024-01-20',
-        status: 'active',
-        avatar: '👩‍💼',
-        permissions: ['view', 'edit'],
-        lastActivity: '2 hours ago'
-      },
-      {
-        id: '3',
-        name: 'Jamie Razick',
-        email: 'jamie@example.com',
-        role: 'viewer',
-        relationship: 'child',
-        joinedDate: '2024-02-01',
-        status: 'active',
-        avatar: '👦',
-        permissions: ['view'],
-        lastActivity: '1 day ago'
-      }
-    ];
-
-    // Demo shared budgets
-    const demoBudgets = [
-      {
-        id: '1',
-        name: 'Household Expenses',
-        totalBudget: 3500,
-        spent: 2100,
-        remaining: 1400,
-        categories: ['Groceries', 'Utilities', 'Mortgage'],
-        members: ['1', '2'],
-        creator: '1',
-        status: 'active',
-        period: 'monthly',
-        progress: 60
-      },
-      {
-        id: '2',
-        name: 'Family Vacation Fund',
-        totalBudget: 5000,
-        spent: 1200,
-        remaining: 3800,
-        categories: ['Travel', 'Accommodation', 'Activities'],
-        members: ['1', '2', '3'],
-        creator: '2',
-        status: 'active',
-        period: 'annual',
-        progress: 24
-      },
-      {
-        id: '3',
-        name: 'Emergency Fund',
-        totalBudget: 10000,
-        spent: 0,
-        remaining: 10000,
-        categories: ['Savings'],
-        members: ['1', '2'],
-        creator: '1',
-        status: 'active',
-        period: 'ongoing',
-        progress: 0
-      }
-    ];
-
-    setFamilyMembers(demoMembers);
-    setSharedBudgets(demoBudgets);
-
-    // Generate invite link
-    setInviteLink(`https://ai-finance.app/invite/${Math.random().toString(36).substr(2, 9)}`);
-
-    // Calculate family stats
-    const totalBudgetAmount = demoBudgets.reduce((sum, budget) => sum + budget.totalBudget, 0);
-    const totalSpent = demoBudgets.reduce((sum, budget) => sum + budget.spent, 0);
-    const totalRemaining = demoBudgets.reduce((sum, budget) => sum + budget.remaining, 0);
-
-    setFamilyStats({
-      totalMembers: demoMembers.length,
-      totalBudgets: demoBudgets.length,
-      totalBudgetAmount,
-      totalSpent,
-      totalRemaining,
-      spendingPercentage: totalBudgetAmount > 0 ? Math.round((totalSpent / totalBudgetAmount) * 100) : 0
-    });
-
-    // Demo notifications
-    setNotifications([
-      {
-        id: '1',
-        type: 'budget_alert',
-        message: 'Household Expenses is 60% spent this month',
-        member: 'Sarah Razick',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        read: false,
-        icon: '⚠️'
-      },
-      {
-        id: '2',
-        type: 'member_joined',
-        message: 'Jamie joined the Family Hub',
-        member: 'Jamie Razick',
-        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        read: true,
-        icon: '👋'
-      },
-      {
-        id: '3',
-        type: 'budget_created',
-        message: 'Emergency Fund budget was created',
-        member: 'Rinoz Razick',
-        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        read: true,
-        icon: '💰'
-      }
-    ]);
+    loadFamilyData();
   }, []);
 
+  const loadFamilyData = () => {
+    // Load from localStorage or API
+    const savedMembers = localStorage.getItem('familyMembers');
+    const savedBudgets = localStorage.getItem('sharedBudgets');
+    
+    if (savedMembers) {
+      try {
+        const members = JSON.parse(savedMembers);
+        setFamilyMembers(members);
+        setFamilyStats(prev => ({ ...prev, totalMembers: members.length }));
+      } catch (error) {
+        console.error('Error loading family members:', error);
+        const demoMembers = getDemoMembers();
+        setFamilyMembers(demoMembers);
+        setFamilyStats(prev => ({ ...prev, totalMembers: demoMembers.length }));
+      }
+    } else {
+      const demoMembers = getDemoMembers();
+      setFamilyMembers(demoMembers);
+      setFamilyStats(prev => ({ ...prev, totalMembers: demoMembers.length }));
+    }
+    
+    if (savedBudgets) {
+      try {
+        const budgets = JSON.parse(savedBudgets);
+        setSharedBudgets(budgets);
+        const totalBudget = budgets.reduce((sum, budget) => sum + budget.totalBudget, 0);
+        const totalSpent = budgets.reduce((sum, budget) => sum + budget.spent, 0);
+        const spendingPercentage = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+        setFamilyStats(prev => ({ 
+          ...prev, 
+          totalBudgets: budgets.length,
+          totalBudgetAmount: totalBudget,
+          totalSpent: totalSpent,
+          spendingPercentage: spendingPercentage
+        }));
+      } catch (error) {
+        console.error('Error loading shared budgets:', error);
+        const demoBudgets = getDemoBudgets();
+        setSharedBudgets(demoBudgets);
+        const totalBudget = demoBudgets.reduce((sum, budget) => sum + budget.totalBudget, 0);
+        const totalSpent = demoBudgets.reduce((sum, budget) => sum + budget.spent, 0);
+        const spendingPercentage = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+        setFamilyStats(prev => ({ 
+          ...prev, 
+          totalBudgets: demoBudgets.length,
+          totalBudgetAmount: totalBudget,
+          totalSpent: totalSpent,
+          spendingPercentage: spendingPercentage
+        }));
+      }
+    } else {
+      const demoBudgets = getDemoBudgets();
+      setSharedBudgets(demoBudgets);
+      const totalBudget = demoBudgets.reduce((sum, budget) => sum + budget.totalBudget, 0);
+      const totalSpent = demoBudgets.reduce((sum, budget) => sum + budget.spent, 0);
+      const spendingPercentage = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+      setFamilyStats(prev => ({ 
+        ...prev, 
+        totalBudgets: demoBudgets.length,
+        totalBudgetAmount: totalBudget,
+        totalSpent: totalSpent,
+        spendingPercentage: spendingPercentage
+      }));
+    }
+    
+    // Generate invite link
+    setInviteLink(`${window.location.origin}/family/invite/${generateInviteCode()}`);
+  };
+
+  const getDemoMembers = () => [
+    {
+      id: '1',
+      name: 'Rinoz Razick',
+      email: 'rinoz@example.com',
+      role: 'admin',
+      relationship: 'self',
+      joinedDate: '2024-01-15',
+      status: 'active',
+      avatar: '👨‍💼',
+      permissions: ['view', 'edit', 'admin'],
+      lastActivity: 'Now'
+    },
+    {
+      id: '2',
+      name: 'Sarah Razick',
+      email: 'sarah@example.com',
+      role: 'co-manager',
+      relationship: 'partner',
+      joinedDate: '2024-01-20',
+      status: 'active',
+      avatar: '👩‍💼',
+      permissions: ['view', 'edit'],
+      lastActivity: '2 hours ago'
+    },
+    {
+      id: '3',
+      name: 'Jamie Razick',
+      email: 'jamie@example.com',
+      role: 'viewer',
+      relationship: 'child',
+      joinedDate: '2024-02-01',
+      status: 'active',
+      avatar: '👦',
+      permissions: ['view'],
+      lastActivity: '1 day ago'
+    }
+  ];
+
+  const getDemoBudgets = () => [
+    {
+      id: '1',
+      name: 'Family Groceries',
+      totalBudget: 800,
+      spent: 650,
+      categories: ['Food', 'Household', 'Personal Care'],
+      members: ['1', '2'],
+      period: 'monthly',
+      status: 'active',
+      createdBy: '1',
+      createdAt: '2024-01-15'
+    },
+    {
+      id: '2',
+      name: 'Family Entertainment',
+      totalBudget: 300,
+      spent: 120,
+      categories: ['Movies', 'Games', 'Outings'],
+      members: ['1', '2', '3'],
+      period: 'monthly',
+      status: 'active',
+      createdBy: '2',
+      createdAt: '2024-01-20'
+    }
+  ];
+
+  const generateInviteCode = () => {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  };
+
   const handleAddMember = () => {
-    if (newMember.name && newMember.email) {
-      const member = {
-        id: Date.now().toString(),
-        ...newMember,
-        joinedDate: new Date().toISOString().split('T')[0],
-        status: 'invited',
-        avatar: '👤',
-        permissions: newMember.role === 'admin' ? ['view', 'edit', 'admin'] : 
-                    newMember.role === 'co-manager' ? ['view', 'edit'] : ['view'],
-        lastActivity: 'Invited'
-      };
+    if (!newMember.name || !newMember.email) {
+      showToast('Please fill in all required fields', 'error');
+      return;
+    }
 
-      setFamilyMembers([...familyMembers, member]);
-      setNewMember({ name: '', email: '', role: 'viewer', relationship: '' });
-      setShowAddMemberModal(false);
+    // Check if member already exists
+    const existingMember = familyMembers.find(member => member.email === newMember.email);
+    if (existingMember) {
+      showToast('A member with this email already exists', 'error');
+      return;
+    }
 
-      // Show success toast
-      showToast(`Invitation sent to ${member.name}`, 'success');
+    const member = {
+      id: Date.now().toString(),
+      ...newMember,
+      joinedDate: new Date().toISOString().split('T')[0],
+      status: 'pending',
+      avatar: '👤',
+      permissions: getPermissionsForRole(newMember.role),
+      lastActivity: 'Never'
+    };
+
+    const updatedMembers = [...familyMembers, member];
+    setFamilyMembers(updatedMembers);
+    
+    // Save to localStorage
+    localStorage.setItem('familyMembers', JSON.stringify(updatedMembers));
+    
+    // Reset form
+    setNewMember({
+      name: '',
+      email: '',
+      role: 'viewer',
+      relationship: ''
+    });
+    
+    setShowAddMemberModal(false);
+    showToast(`${member.name} has been invited to join the family hub`, 'success');
+  };
+
+  const getPermissionsForRole = (role) => {
+    switch (role) {
+      case 'admin':
+        return ['view', 'edit', 'admin', 'invite', 'delete'];
+      case 'co-manager':
+        return ['view', 'edit', 'invite'];
+      case 'contributor':
+        return ['view', 'edit'];
+      case 'viewer':
+        return ['view'];
+      default:
+        return ['view'];
     }
   };
 
@@ -289,7 +325,7 @@ const FamilyHub = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -361,7 +397,7 @@ const FamilyHub = () => {
                 <BanknotesIcon className="w-8 h-8 text-purple-500" />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-500">Total Budget</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(familyStats.totalBudgetAmount)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(familyStats.totalBudgetAmount, currentCurrency)}</p>
                 </div>
               </div>
             </div>
@@ -372,7 +408,7 @@ const FamilyHub = () => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-500">Spending Rate</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(familyStats.totalSpent)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(familyStats.totalSpent, currentCurrency)}</p>
                 </div>
               </div>
             </div>
@@ -505,7 +541,7 @@ const FamilyHub = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Spent</span>
-                    <span className="font-medium">{formatCurrency(budget.spent)} of {formatCurrency(budget.totalBudget)}</span>
+                    <span className="font-medium">{formatCurrency(budget.spent, currentCurrency)} of {formatCurrency(budget.totalBudget, currentCurrency)}</span>
                   </div>
                   
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -517,7 +553,7 @@ const FamilyHub = () => {
                   
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Remaining</span>
-                    <span className="font-medium text-green-600">{formatCurrency(budget.remaining)}</span>
+                    <span className="font-medium text-green-600">{formatCurrency(budget.remaining, currentCurrency)}</span>
                   </div>
                   
                   <div className="flex justify-between text-sm">

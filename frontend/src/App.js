@@ -12,6 +12,7 @@ import AIAssistant from './pages/AIAssistant';
 import Goals from './pages/Goals';
 import Subscriptions from './pages/Subscriptions';
 import Investments from './pages/Investments';
+import FamilyHub from './pages/FamilyHub';
 import Settings from './pages/Settings';
 import notificationService from './services/notificationService';
 import './index.css';
@@ -114,6 +115,14 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Investments />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/family" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <FamilyHub />
                 </MainLayout>
               </ProtectedRoute>
             } />

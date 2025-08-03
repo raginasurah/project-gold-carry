@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import SyncStatus from '../ui/SyncStatus';
+import { formatCurrency, getCurrencySymbol, useCurrencyListener } from '../../utils/currency';
 import { 
   BellIcon, 
   UserCircleIcon, 
@@ -15,6 +16,12 @@ import { Fragment } from 'react';
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [showBalance, setShowBalance] = useState(true);
+  const [currentCurrency, setCurrentCurrency] = useState(getCurrencySymbol());
+
+  // Listen for currency changes
+  useCurrencyListener((newCurrency) => {
+    setCurrentCurrency(getCurrencySymbol(newCurrency));
+  });
 
   // Mock data - replace with real data from API
   const quickStats = {
@@ -22,25 +29,6 @@ const Navbar = () => {
     weeklyStatus: 'on_track',
     paydayCountdown: 3,
     monthlySavings: 1250.00
-  };
-
-  // Currency formatting function
-  const formatCurrency = (amount) => {
-    const settings = JSON.parse(localStorage.getItem('financeAppSettings') || '{}');
-    const currency = settings.preferences?.currency || 'GBP';
-    const locale = currency === 'USD' ? 'en-US' : 'en-GB';
-    
-    try {
-      return new Intl.NumberFormat(locale, {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(amount);
-    } catch (error) {
-      const symbol = currency === 'USD' ? '$' : '£';
-      return `${symbol}${amount.toFixed(2)}`;
-    }
   };
 
   const getWeeklyStatusColor = (status) => {
@@ -70,146 +58,113 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Left side - Logo and Quick Stats */}
-          <div className="flex items-center space-x-8">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-primary-800 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">$</span>
-              </div>
-              <span className="ml-2 text-xl font-bold text-gradient">AI Finance</span>
-            </div>
+    <nav className="bg-white shadow-sm border-b border-gray-200 px-4 py-3">
+      <div className="flex items-center justify-between">
+        {/* Logo and Brand */}
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-primary-800 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">{currentCurrency}</span>
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">AI Finance</h1>
+            <p className="text-xs text-gray-500">Personal Finance Management</p>
+          </div>
+        </div>
 
-            {/* Quick Stats Bar */}
-            <div className="hidden md:flex items-center space-x-6">
-              {/* Sync Status */}
-              <SyncStatus className="relative" />
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">Today:</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {formatCurrency(quickStats.spendingToday)}
-                </span>
-              </div>
+        {/* Quick Stats */}
+        <div className="hidden md:flex items-center space-x-6">
+          {/* Today's Spending */}
+          <div className="text-center">
+            <p className="text-xs text-gray-500">Today's Spending</p>
+            <p className="text-sm font-semibold text-gray-900">{formatCurrency(quickStats.spendingToday)}</p>
+          </div>
 
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">Week:</span>
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${getWeeklyStatusColor(quickStats.weeklyStatus)}`}>
-                  {getWeeklyStatusText(quickStats.weeklyStatus)}
-                </span>
-              </div>
+          {/* Weekly Status */}
+          <div className="text-center">
+            <p className="text-xs text-gray-500">Weekly Status</p>
+            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getWeeklyStatusColor(quickStats.weeklyStatus)}`}>
+              {getWeeklyStatusText(quickStats.weeklyStatus)}
+            </span>
+          </div>
 
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">Payday:</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {quickStats.paydayCountdown} days
-                </span>
-              </div>
+          {/* Payday Countdown */}
+          <div className="text-center">
+            <p className="text-xs text-gray-500">Days to Payday</p>
+            <p className="text-sm font-semibold text-gray-900">{quickStats.paydayCountdown}</p>
+          </div>
 
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">Savings:</span>
-                <div className="flex items-center space-x-1">
-                  {showBalance ? (
-                    <>
-                      <span className="text-sm font-medium text-success-600">
-                        {formatCurrency(quickStats.monthlySavings)}
-                      </span>
-                      <button
-                        onClick={() => setShowBalance(false)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        <EyeSlashIcon className="w-4 h-4" />
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-sm font-medium text-gray-400">••••••</span>
-                      <button
-                        onClick={() => setShowBalance(true)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        <EyeIcon className="w-4 h-4" />
-                      </button>
-                    </>
+          {/* Monthly Savings */}
+          <div className="text-center">
+            <p className="text-xs text-gray-500">Monthly Savings</p>
+            <p className="text-sm font-semibold text-gray-900">{formatCurrency(quickStats.monthlySavings)}</p>
+          </div>
+        </div>
+
+        {/* Right Side */}
+        <div className="flex items-center space-x-4">
+          {/* Sync Status */}
+          <SyncStatus className="hidden sm:block" />
+
+          {/* Balance Toggle */}
+          <button
+            onClick={() => setShowBalance(!showBalance)}
+            className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+            title={showBalance ? 'Hide Balance' : 'Show Balance'}
+          >
+            {showBalance ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+          </button>
+
+          {/* Notifications */}
+          <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors relative">
+            <BellIcon className="w-5 h-5" />
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">3</span>
+          </button>
+
+          {/* User Menu */}
+          <Menu as="div" className="relative">
+            <Menu.Button className="flex items-center space-x-2 p-2 text-gray-400 hover:text-gray-600 transition-colors">
+              <UserCircleIcon className="w-6 h-6" />
+              <span className="text-sm font-medium text-gray-700">{user?.first_name || 'User'}</span>
+            </Menu.Button>
+
+            <Transition
+              as={Fragment}
+              enter="transition ease-out duration-100"
+              enterFrom="transform opacity-0 scale-95"
+              enterTo="transform opacity-100 scale-100"
+              leave="transition ease-in duration-75"
+              leaveFrom="transform opacity-100 scale-100"
+              leaveTo="transform opacity-0 scale-95"
+            >
+              <Menu.Items className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      className={`${
+                        active ? 'bg-gray-100' : ''
+                      } flex items-center w-full px-4 py-2 text-sm text-gray-700`}
+                    >
+                      <CogIcon className="w-4 h-4 mr-2" />
+                      Settings
+                    </button>
                   )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right side - Notifications and User Menu */}
-          <div className="flex items-center space-x-4">
-            {/* Notifications */}
-            <button className="p-2 text-gray-400 hover:text-gray-600 relative">
-              <BellIcon className="w-6 h-6" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-danger-500 rounded-full"></span>
-            </button>
-
-            {/* User Menu */}
-            <Menu as="div" className="relative">
-              <Menu.Button className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 focus:outline-none">
-                <UserCircleIcon className="w-8 h-8" />
-                <span className="hidden md:block text-sm font-medium">
-                  {user?.first_name} {user?.last_name}
-                </span>
-              </Menu.Button>
-
-              <Transition
-                as={Fragment}
-                enter="transition ease-out duration-100"
-                enterFrom="transform opacity-0 scale-95"
-                enterTo="transform opacity-100 scale-100"
-                leave="transition ease-in duration-75"
-                leaveFrom="transform opacity-100 scale-100"
-                leaveTo="transform opacity-0 scale-95"
-              >
-                <Menu.Items className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        className={`${
-                          active ? 'bg-gray-100' : ''
-                        } flex items-center w-full px-4 py-2 text-sm text-gray-700`}
-                      >
-                        <UserCircleIcon className="w-4 h-4 mr-3" />
-                        Profile
-                      </button>
-                    )}
-                  </Menu.Item>
-                  
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        className={`${
-                          active ? 'bg-gray-100' : ''
-                        } flex items-center w-full px-4 py-2 text-sm text-gray-700`}
-                      >
-                        <CogIcon className="w-4 h-4 mr-3" />
-                        Settings
-                      </button>
-                    )}
-                  </Menu.Item>
-                  
-                  <div className="border-t border-gray-200 my-1"></div>
-                  
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        onClick={logout}
-                        className={`${
-                          active ? 'bg-gray-100' : ''
-                        } flex items-center w-full px-4 py-2 text-sm text-gray-700`}
-                      >
-                        <ArrowRightOnRectangleIcon className="w-4 h-4 mr-3" />
-                        Sign Out
-                      </button>
-                    )}
-                  </Menu.Item>
-                </Menu.Items>
-              </Transition>
-            </Menu>
-          </div>
+                </Menu.Item>
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      onClick={logout}
+                      className={`${
+                        active ? 'bg-gray-100' : ''
+                      } flex items-center w-full px-4 py-2 text-sm text-gray-700`}
+                    >
+                      <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2" />
+                      Logout
+                    </button>
+                  )}
+                </Menu.Item>
+              </Menu.Items>
+            </Transition>
+          </Menu>
         </div>
       </div>
     </nav>

@@ -1,234 +1,258 @@
-# AI Finance - Personal Finance Management App
+# AI Finance Manager
 
-A full-stack, AI-powered personal finance web application built with React, FastAPI, and Supabase.
+A comprehensive financial management application with AI-powered insights, built with FastAPI backend and React frontend.
 
 ## 🚀 Features
 
 ### Core Features
-- **Secure Authentication** - User registration and login with Supabase
-- **Smart Budgeting** - Multiple budgeting methods (50/30/20, Zero-based, 70/20/10, 60% rules)
-- **Transaction Management** - Track income and expenses with categorization
-- **AI Financial Coach** - OpenAI-powered chat interface for financial advice
-- **Dashboard Analytics** - Visual charts and insights
-- **Goal Tracking** - Set and monitor financial goals
-- **Subscription Management** - Track recurring payments
-- **Investment Portfolio** - Monitor investments and performance
+- **Transaction Management**: Track income and expenses with categories
+- **Budget Planning**: Multiple budgeting methods (50/30/20, Zero-based, etc.)
+- **Financial Goals**: Set and track savings goals
+- **AI Financial Coach**: Get personalized financial advice
+- **Analytics & Reports**: Detailed spending analysis and insights
+- **Subscription Tracking**: Monitor recurring expenses
+- **Export & Import**: CSV export and bulk transaction import
 
-### AI Features
-- **Natural Language Financial Coach** - Chat with AI for personalized advice
-- **Smart Insights** - Automated financial analysis and recommendations
-- **Scenario Simulation** - Test different financial scenarios
-- **Risk Alerts** - Unusual activity detection
+### Technical Features
+- **Secure Authentication**: JWT-based auth with Supabase
+- **Rate Limiting**: API protection against abuse
+- **Real-time Updates**: Live data synchronization
+- **Responsive Design**: Mobile-first UI with Tailwind CSS
+- **Docker Support**: Containerized deployment
+- **Database Security**: Row Level Security (RLS) policies
 
-### UX Features
-- **Responsive Design** - Mobile-friendly interface
-- **Privacy Mode** - Hide sensitive financial information
-- **Quick Stats Bar** - Real-time financial overview
-- **Gamified Elements** - Savings challenges and progress tracking
+## 🏗️ Architecture
 
-## 🛠 Tech Stack
+```
+project-gold-carry/
+├── backend/                 # FastAPI backend
+│   ├── config.py           # Application configuration
+│   ├── main.py             # FastAPI application
+│   ├── middleware/         # Custom middleware
+│   ├── models/             # Pydantic models
+│   ├── routers/            # API endpoints
+│   ├── services/           # Business logic
+│   └── tests/              # Test suite
+├── frontend/               # React frontend
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   ├── config/         # Configuration files
+│   │   ├── contexts/       # React contexts
+│   │   ├── hooks/          # Custom hooks
+│   │   └── pages/          # Page components
+│   └── public/             # Static assets
+├── database/               # Database schema
+└── docker-compose.yml      # Docker configuration
+```
 
-### Frontend
-- **React.js** - UI framework
-- **Tailwind CSS** - Styling
-- **Recharts** - Data visualization
-- **React Router** - Navigation
-- **Axios** - HTTP client
+## 🛠️ Tech Stack
 
 ### Backend
-- **FastAPI** - Python web framework
-- **OpenAI API** - AI integration
-- **Pydantic** - Data validation
-- **Uvicorn** - ASGI server
+- **FastAPI**: Modern Python web framework
+- **Supabase**: Database and authentication
+- **Pydantic**: Data validation and serialization
+- **Redis**: Caching and rate limiting
+- **OpenAI**: AI-powered financial coaching
 
-### Database
-- **Supabase** - PostgreSQL database with real-time features
-- **Row Level Security** - Data protection
-- **Authentication** - Built-in auth system
+### Frontend
+- **React**: UI framework
+- **Tailwind CSS**: Styling
+- **React Query**: Data fetching and caching
+- **React Router**: Navigation
+- **Axios**: HTTP client
 
-### Deployment
-- **Vercel** - Frontend hosting
-- **Render** - Backend hosting
-- **Supabase** - Database hosting
+### Infrastructure
+- **Docker**: Containerization
+- **Nginx**: Reverse proxy
+- **PostgreSQL**: Database (via Supabase)
 
 ## 📦 Installation
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- Python (v3.8 or higher)
+- Python 3.9+
+- Node.js 18+
+- Docker & Docker Compose
 - Supabase account
 - OpenAI API key
 
-### Backend Setup
+### Quick Start
 
-1. **Navigate to backend directory:**
+1. **Clone the repository**
    ```bash
+   git clone <repository-url>
+   cd project-gold-carry
+   ```
+
+2. **Set up environment variables**
+   ```bash
+   cp env.example .env
+   # Edit .env with your actual values
+   ```
+
+3. **Install dependencies**
+   ```bash
+   # Backend
    cd backend
-   ```
-
-2. **Create virtual environment:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies:**
-   ```bash
    pip install -r requirements.txt
-   ```
-
-4. **Set environment variables:**
-   Create a `.env` file in the backend directory:
-   ```env
-   OPENAI_API_KEY=your_openai_api_key_here
-   SUPABASE_URL=your_supabase_url
-   SUPABASE_KEY=your_supabase_anon_key
-   ```
-
-5. **Run the backend:**
-   ```bash
-   uvicorn main:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-### Frontend Setup
-
-1. **Navigate to frontend directory:**
-   ```bash
-   cd frontend
-   ```
-
-2. **Install dependencies:**
-   ```bash
+   
+   # Frontend
+   cd ../frontend
    npm install
    ```
 
-3. **Start development server:**
+4. **Set up database**
+   - Create a Supabase project
+   - Run the schema from `database/schema.sql`
+   - Update environment variables with Supabase credentials
+
+5. **Run the application**
    ```bash
+   # Development
+   # Backend
+   cd backend
+   uvicorn main:app --reload
+   
+   # Frontend (in another terminal)
+   cd frontend
    npm start
    ```
 
-The app will be available at `http://localhost:3000`
-
-## 🗄 Database Setup
-
-1. **Create Supabase project** at [supabase.com](https://supabase.com)
-
-2. **Run the schema** from `database/schema.sql` in your Supabase SQL editor
-
-3. **Configure authentication** in Supabase dashboard
-
-4. **Update environment variables** with your Supabase credentials
+   ```bash
+   # Production with Docker
+   docker-compose up --build
+   ```
 
 ## 🔧 Configuration
 
 ### Environment Variables
 
-#### Backend (.env)
-```env
-OPENAI_API_KEY=sk-your-openai-api-key
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your-supabase-anon-key
-```
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `OPENAI_API_KEY` | OpenAI API key for AI features | Yes |
+| `SUPABASE_URL` | Supabase project URL | Yes |
+| `SUPABASE_KEY` | Supabase service key | Yes |
+| `SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
+| `JWT_SECRET_KEY` | JWT signing key | Yes |
+| `CORS_ORIGINS` | Allowed CORS origins | No |
+| `DEBUG` | Debug mode | No |
 
-#### Frontend
-Update API endpoints in `src/contexts/AuthContext.js` and other API calls to match your backend URL.
+### Supabase Setup
+
+1. Create a new Supabase project
+2. Run the SQL schema from `database/schema.sql`
+3. Enable Row Level Security (RLS) on all tables
+4. Configure authentication providers
+5. Get your project URL and API keys
 
 ## 🚀 Deployment
 
-### Backend Deployment (Render)
+### Railway (Backend)
+```bash
+cd backend
+railway login
+railway link
+railway up
+```
 
-1. **Connect your GitHub repository** to Render
-2. **Create a new Web Service**
-3. **Configure build settings:**
-   - Build Command: `pip install -r requirements.txt`
-   - Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-4. **Add environment variables** in Render dashboard
-5. **Deploy**
+### Vercel (Frontend)
+```bash
+cd frontend
+vercel --prod
+```
 
-### Frontend Deployment (Vercel)
+### Docker
+```bash
+docker-compose up --build -d
+```
 
-1. **Connect your GitHub repository** to Vercel
-2. **Configure build settings:**
-   - Framework Preset: Create React App
-   - Build Command: `npm run build`
-   - Output Directory: `build`
-3. **Add environment variables** if needed
-4. **Deploy**
+## 📚 API Documentation
 
-### Database (Supabase)
+Once the backend is running, visit:
+- **Swagger UI**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
 
-1. **Database is automatically deployed** with Supabase
-2. **Configure Row Level Security** policies
-3. **Set up authentication** providers
-4. **Configure real-time subscriptions** if needed
+### Key Endpoints
 
-## 📱 Usage
+#### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/logout` - User logout
 
-### Getting Started
+#### Transactions
+- `GET /api/transactions` - List transactions
+- `POST /api/transactions` - Create transaction
+- `PUT /api/transactions/{id}` - Update transaction
+- `DELETE /api/transactions/{id}` - Delete transaction
+- `GET /api/transactions/summary` - Get summary statistics
 
-1. **Register an account** or use demo credentials:
-   - Email: `demo@example.com`
-   - Password: `password123`
+#### AI Coach
+- `POST /api/ai-coach/chat` - Chat with AI financial coach
 
-2. **Set up your profile** and financial information
+## 🧪 Testing
 
-3. **Create your first budget** using one of the available methods
+### Backend Tests
+```bash
+cd backend
+pytest -v
+pytest --cov=. --cov-report=html
+```
 
-4. **Start tracking transactions** and get AI insights
-
-### AI Assistant
-
-- **Ask financial questions** in natural language
-- **Get personalized advice** based on your data
-- **Receive spending insights** and recommendations
-- **Plan financial goals** with AI guidance
-
-### Budgeting Methods
-
-- **50/30/20 Rule**: 50% needs, 30% wants, 20% savings
-- **Zero-Based Budgeting**: Every dollar has a purpose
-- **70/20/10 Rule**: 70% living, 20% savings, 10% debt
-- **60% Solution**: 60% committed expenses, 40% flexible
+### Frontend Tests
+```bash
+cd frontend
+npm test
+```
 
 ## 🔒 Security
 
-- **Row Level Security** in Supabase
-- **JWT authentication** tokens
-- **Password hashing** (bcrypt)
-- **CORS protection**
-- **Input validation** with Pydantic
-- **Environment variable** protection
+- **Authentication**: JWT tokens with secure signing
+- **Authorization**: Row Level Security (RLS) policies
+- **Rate Limiting**: API protection against abuse
+- **CORS**: Configured for specific origins
+- **Input Validation**: Pydantic models with strict validation
+- **SQL Injection**: Protected via Supabase client
+
+## 📊 Database Schema
+
+The application uses PostgreSQL with the following main tables:
+
+- `user_profiles` - User profile information
+- `transactions` - Financial transactions
+- `budgets` - Budget categories and limits
+- `goals` - Financial goals and progress
+- `subscriptions` - Recurring expenses
+- `ai_conversations` - AI chat history
 
 ## 🤝 Contributing
 
-1. **Fork the repository**
-2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
-3. **Commit your changes** (`git commit -m 'Add amazing feature'`)
-4. **Push to the branch** (`git push origin feature/amazing-feature`)
-5. **Open a Pull Request**
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ## 🆘 Support
 
-For support, email support@aifinance.com or create an issue in the GitHub repository.
+For support and questions:
+- Create an issue in the repository
+- Check the documentation
+- Review the API docs at `/docs`
 
-## 🔮 Roadmap
+## 🗺️ Roadmap
 
-- [ ] Plaid integration for bank account aggregation
-- [ ] Advanced investment tracking
-- [ ] Family/shared budgeting features
-- [ ] Mobile app (React Native)
-- [ ] Advanced AI features (predictive analytics)
-- [ ] Tax optimization tools
-- [ ] Cryptocurrency tracking
-- [ ] International currency support
+- [ ] Multi-currency support
+- [ ] Investment portfolio tracking
+- [ ] Family/shared budgets
+- [ ] Mobile app
+- [ ] Advanced AI insights
+- [ ] Integration with banks
+- [ ] Tax reporting
+- [ ] Financial planning tools
 
-## 🙏 Acknowledgments
+---
 
-- OpenAI for AI capabilities
-- Supabase for backend services
-- Tailwind CSS for styling
-- React community for excellent tools and libraries
+Built with ❤️ using FastAPI and React

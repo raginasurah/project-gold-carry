@@ -1,3 +1,5 @@
+import React from 'react';
+
 // Currency utility functions
 export const getCurrencySettings = () => {
   const settings = localStorage.getItem('financeAppSettings');
@@ -56,4 +58,16 @@ export const setCurrencySettings = (currency) => {
 export const getCurrencySymbol = (currency = null) => {
   const curr = currency || getCurrencySettings().currency;
   return curr === 'USD' ? '$' : '£';
+};
+
+// Hook for components to listen to currency changes
+export const useCurrencyListener = (callback) => {
+  React.useEffect(() => {
+    const handleCurrencyChange = (event) => {
+      callback(event.detail.currency);
+    };
+    
+    window.addEventListener('currencyChanged', handleCurrencyChange);
+    return () => window.removeEventListener('currencyChanged', handleCurrencyChange);
+  }, [callback]);
 };

@@ -1,0 +1,31 @@
+# Core FastAPI dependencies
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+python-dotenv
+
+# HTTP client
+httpx
+
+# Database
+supabase
+asyncpg
+sqlalchemy
+
+# Authentication & Security
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+
+# AI Integration
+openai
+
+# Caching
+redis
+aioredis
+
+# Utilities
+python-dateutil
+aiofiles
+python-json-logger 

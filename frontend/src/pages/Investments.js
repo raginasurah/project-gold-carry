@@ -1,415 +1,417 @@
 import React, { useState, useEffect } from 'react';
-import { PlusIcon, ChartBarIcon, CurrencyPoundIcon, XMarkIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon } from '@heroicons/react/24/outline';
+import { formatCurrency, useCurrencyListener } from '../utils/currency';
+import { 
+  PlusIcon, 
+  ArrowTrendingUpIcon, 
+  ArrowTrendingDownIcon, 
+  ChartBarIcon,
+  BanknotesIcon,
+  ClockIcon,
+  ExclamationTriangleIcon
+} from '@heroicons/react/24/outline';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const Investments = () => {
-  const [portfolios, setPortfolios] = useState([]);
-  const [selectedPortfolio, setSelectedPortfolio] = useState(null);
+  const [investments, setInvestments] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showPortfolioModal, setShowPortfolioModal] = useState(false);
-  const [newInvestment, setNewInvestment] = useState({
-    name: '',
-    type: 'stock',
-    amount: '',
-    quantity: '',
-    purchaseDate: '',
-    symbol: '',
-    category: ''
-  });
-  const [newPortfolio, setNewPortfolio] = useState({
-    name: '',
-    description: '',
-    type: 'personal'
+  const [selectedInvestment, setSelectedInvestment] = useState(null);
+  const [currentCurrency, setCurrentCurrency] = useState('GBP');
+
+  // Listen for currency changes
+  useCurrencyListener((newCurrency) => {
+    setCurrentCurrency(newCurrency);
   });
 
-  // Mock investment data
+  const [newInvestment, setNewInvestment] = useState({
+    name: '',
+    type: 'stocks',
+    amount: '',
+    purchaseDate: '',
+    currentValue: '',
+    description: ''
+  });
+
+  // Mock investments data - replace with real API data
   useEffect(() => {
-    const mockPortfolios = [
+    const mockInvestments = [
       {
         id: 1,
-        name: 'Main Portfolio',
-        description: 'Primary investment portfolio',
-        type: 'personal',
-        totalValue: 25000,
-        totalGain: 3200,
-        gainPercentage: 14.7,
-        investments: [
-          {
-            id: 1,
-            name: 'Apple Inc.',
-            symbol: 'AAPL',
-            type: 'stock',
-            quantity: 10,
-            purchasePrice: 150,
-            currentPrice: 175,
-            purchaseDate: '2023-06-15',
-            category: 'Technology',
-            gain: 250,
-            gainPercentage: 16.7
-          },
-          {
-            id: 2,
-            name: 'Tesla Inc.',
-            symbol: 'TSLA',
-            type: 'stock',
-            quantity: 5,
-            purchasePrice: 200,
-            currentPrice: 180,
-            purchaseDate: '2023-08-20',
-            category: 'Automotive',
-            gain: -100,
-            gainPercentage: -10.0
-          },
-          {
-            id: 3,
-            name: 'London Property Fund',
-            symbol: 'LPF',
-            type: 'property',
-            quantity: 100,
-            purchasePrice: 85,
-            currentPrice: 92,
-            purchaseDate: '2023-03-10',
-            category: 'Real Estate',
-            gain: 700,
-            gainPercentage: 8.2
-          }
-        ]
+        name: 'Apple Inc. (AAPL)',
+        type: 'stocks',
+        amount: 5000,
+        purchaseDate: '2023-01-15',
+        currentValue: 6200,
+        description: 'Technology stock investment',
+        performance: 24.0,
+        risk: 'medium'
       },
       {
         id: 2,
-        name: 'Retirement Fund',
-        description: 'Long-term retirement savings',
-        type: 'retirement',
-        totalValue: 15000,
-        totalGain: 1800,
-        gainPercentage: 13.6,
-        investments: [
-          {
-            id: 4,
-            name: 'Vanguard S&P 500 ETF',
-            symbol: 'VOO',
-            type: 'etf',
-            quantity: 25,
-            purchasePrice: 380,
-            currentPrice: 420,
-            purchaseDate: '2023-01-15',
-            category: 'Index Fund',
-            gain: 1000,
-            gainPercentage: 10.5
-          }
-        ]
+        name: 'Vanguard S&P 500 ETF',
+        type: 'etf',
+        amount: 10000,
+        purchaseDate: '2022-06-01',
+        currentValue: 11200,
+        description: 'Index fund tracking S&P 500',
+        performance: 12.0,
+        risk: 'low'
+      },
+      {
+        id: 3,
+        name: 'Tesla Inc. (TSLA)',
+        type: 'stocks',
+        amount: 3000,
+        purchaseDate: '2023-03-10',
+        currentValue: 2400,
+        description: 'Electric vehicle company stock',
+        performance: -20.0,
+        risk: 'high'
+      },
+      {
+        id: 4,
+        name: 'Government Bonds',
+        type: 'bonds',
+        amount: 8000,
+        purchaseDate: '2022-12-01',
+        currentValue: 8160,
+        description: 'Low-risk government bonds',
+        performance: 2.0,
+        risk: 'low'
+      },
+      {
+        id: 5,
+        name: 'Bitcoin ETF',
+        type: 'crypto',
+        amount: 2000,
+        purchaseDate: '2023-08-15',
+        currentValue: 2800,
+        description: 'Cryptocurrency investment',
+        performance: 40.0,
+        risk: 'high'
       }
     ];
-    setPortfolios(mockPortfolios);
-    setSelectedPortfolio(mockPortfolios[0]);
+    setInvestments(mockInvestments);
   }, []);
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: 'GBP'
-    }).format(amount);
+  const investmentTypes = [
+    { value: 'stocks', label: 'Stocks', color: 'bg-blue-500' },
+    { value: 'etf', label: 'ETF', color: 'bg-green-500' },
+    { value: 'bonds', label: 'Bonds', color: 'bg-purple-500' },
+    { value: 'crypto', label: 'Cryptocurrency', color: 'bg-orange-500' },
+    { value: 'mutual_funds', label: 'Mutual Funds', color: 'bg-red-500' },
+    { value: 'real_estate', label: 'Real Estate', color: 'bg-indigo-500' }
+  ];
+
+  const getTypeColor = (type) => {
+    const investmentType = investmentTypes.find(t => t.value === type);
+    return investmentType ? investmentType.color : 'bg-gray-500';
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
+  const getTypeLabel = (type) => {
+    const investmentType = investmentTypes.find(t => t.value === type);
+    return investmentType ? investmentType.label : 'Other';
   };
 
-  const getGainColor = (gain) => {
-    return gain >= 0 ? 'text-success-600' : 'text-danger-600';
+  const getRiskColor = (risk) => {
+    switch (risk) {
+      case 'low':
+        return 'text-success-600 bg-success-100';
+      case 'medium':
+        return 'text-warning-600 bg-warning-100';
+      case 'high':
+        return 'text-danger-600 bg-danger-100';
+      default:
+        return 'text-gray-600 bg-gray-100';
+    }
   };
 
-  const getGainIcon = (gain) => {
-    return gain >= 0 ? ArrowTrendingUpIcon : ArrowTrendingDownIcon;
+  const getPerformanceColor = (performance) => {
+    if (performance > 0) return 'text-success-600';
+    if (performance < 0) return 'text-danger-600';
+    return 'text-gray-600';
+  };
+
+  const getPerformanceIcon = (performance) => {
+    if (performance > 0) return <ArrowTrendingUpIcon className="w-4 h-4 text-success-600" />;
+    if (performance < 0) return <ArrowTrendingDownIcon className="w-4 h-4 text-danger-600" />;
+    return <ChartBarIcon className="w-4 h-4 text-gray-600" />;
   };
 
   const handleAddInvestment = () => {
-    if (newInvestment.name && newInvestment.amount && selectedPortfolio) {
+    if (newInvestment.name && newInvestment.amount && newInvestment.purchaseDate) {
+      const currentValue = parseFloat(newInvestment.currentValue) || parseFloat(newInvestment.amount);
+      const performance = ((currentValue - parseFloat(newInvestment.amount)) / parseFloat(newInvestment.amount)) * 100;
+      
       const investment = {
         id: Date.now(),
         name: newInvestment.name,
-        symbol: newInvestment.symbol,
         type: newInvestment.type,
-        quantity: parseFloat(newInvestment.quantity),
-        purchasePrice: parseFloat(newInvestment.amount),
-        currentPrice: parseFloat(newInvestment.amount), // For demo, same as purchase
+        amount: parseFloat(newInvestment.amount),
         purchaseDate: newInvestment.purchaseDate,
-        category: newInvestment.category,
-        gain: 0,
-        gainPercentage: 0
+        currentValue: currentValue,
+        description: newInvestment.description,
+        performance: performance,
+        risk: getRiskLevel(newInvestment.type)
       };
-      
-      const updatedPortfolio = {
-        ...selectedPortfolio,
-        investments: [...selectedPortfolio.investments, investment]
-      };
-      
-      setPortfolios(portfolios.map(p => 
-        p.id === selectedPortfolio.id ? updatedPortfolio : p
-      ));
-      setSelectedPortfolio(updatedPortfolio);
-      
+      setInvestments([...investments, investment]);
       setNewInvestment({
         name: '',
-        type: 'stock',
+        type: 'stocks',
         amount: '',
-        quantity: '',
         purchaseDate: '',
-        symbol: '',
-        category: ''
+        currentValue: '',
+        description: ''
       });
       setShowAddModal(false);
     }
   };
 
-  const handleAddPortfolio = () => {
-    if (newPortfolio.name) {
-      const portfolio = {
-        id: Date.now(),
-        name: newPortfolio.name,
-        description: newPortfolio.description,
-        type: newPortfolio.type,
-        totalValue: 0,
-        totalGain: 0,
-        gainPercentage: 0,
-        investments: []
-      };
-      
-      setPortfolios([...portfolios, portfolio]);
-      setNewPortfolio({
-        name: '',
-        description: '',
-        type: 'personal'
-      });
-      setShowPortfolioModal(false);
+  const getRiskLevel = (type) => {
+    switch (type) {
+      case 'bonds':
+        return 'low';
+      case 'etf':
+        return 'low';
+      case 'stocks':
+        return 'medium';
+      case 'mutual_funds':
+        return 'medium';
+      case 'crypto':
+        return 'high';
+      case 'real_estate':
+        return 'high';
+      default:
+        return 'medium';
     }
   };
 
-  const investmentTypes = ['stock', 'etf', 'property', 'bond', 'crypto', 'commodity'];
-  const investmentCategories = [
-    'Technology', 'Healthcare', 'Finance', 'Consumer Goods', 'Energy', 
-    'Real Estate', 'Automotive', 'Index Fund', 'Other'
-  ];
+  const updateInvestmentValue = (investmentId, newValue) => {
+    setInvestments(investments.map(inv => {
+      if (inv.id === investmentId) {
+        const performance = ((newValue - inv.amount) / inv.amount) * 100;
+        return { ...inv, currentValue: newValue, performance: performance };
+      }
+      return inv;
+    }));
+  };
 
-  const portfolioTypes = ['personal', 'retirement', 'business', 'education'];
+  const deleteInvestment = (investmentId) => {
+    setInvestments(investments.filter(inv => inv.id !== investmentId));
+  };
 
-  const totalPortfolioValue = portfolios.reduce((sum, p) => sum + p.totalValue, 0);
-  const totalPortfolioGain = portfolios.reduce((sum, p) => sum + p.totalGain, 0);
-  const overallGainPercentage = totalPortfolioValue > 0 ? 
-    ((totalPortfolioGain / (totalPortfolioValue - totalPortfolioGain)) * 100) : 0;
+  const totalInvested = investments.reduce((sum, inv) => sum + inv.amount, 0);
+  const totalCurrentValue = investments.reduce((sum, inv) => sum + inv.currentValue, 0);
+  const totalGainLoss = totalCurrentValue - totalInvested;
+  const totalPerformance = totalInvested > 0 ? (totalGainLoss / totalInvested) * 100 : 0;
+
+  // Chart data
+  const performanceData = investments.map(inv => ({
+    name: inv.name,
+    performance: inv.performance,
+    value: inv.currentValue
+  }));
+
+  const typeDistribution = investmentTypes.map(type => {
+    const typeInvestments = investments.filter(inv => inv.type === type.value);
+    const totalValue = typeInvestments.reduce((sum, inv) => sum + inv.currentValue, 0);
+    return {
+      name: type.label,
+      value: totalValue,
+      color: type.color.replace('bg-', '')
+    };
+  }).filter(item => item.value > 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Investments</h1>
-          <p className="text-gray-600">Track and manage your investment portfolio</p>
-        </div>
-        <div className="flex space-x-3">
-          <button 
-            onClick={() => setShowPortfolioModal(true)}
-            className="btn-secondary flex items-center cursor-pointer"
-          >
-            <PlusIcon className="w-4 h-4 mr-2" />
-            New Portfolio
-          </button>
-          <button 
-            onClick={() => setShowAddModal(true)}
-            className="btn-primary flex items-center cursor-pointer"
-          >
-            <PlusIcon className="w-4 h-4 mr-2" />
-            Add Investment
-          </button>
-        </div>
+      <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-2">Investment Portfolio</h1>
+        <p className="text-primary-100">
+          Track and manage your investment portfolio
+        </p>
       </div>
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="card">
-          <div className="flex items-center">
-            <div className="p-2 bg-primary-100 rounded-lg">
-              <CurrencyPoundIcon className="w-6 h-6 text-primary-600" />
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Invested</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalInvested)}</p>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Value</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalPortfolioValue)}</p>
+            <div className="p-3 bg-primary-100 rounded-lg">
+              <BanknotesIcon className="w-6 h-6 text-primary-600" />
             </div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="flex items-center">
-            <div className="p-2 bg-success-100 rounded-lg">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Current Value</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalCurrentValue)}</p>
+            </div>
+            <div className="p-3 bg-success-100 rounded-lg">
                               <ArrowTrendingUpIcon className="w-6 h-6 text-success-600" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Gain</p>
-              <p className={`text-2xl font-bold ${getGainColor(totalPortfolioGain)}`}>
-                {formatCurrency(totalPortfolioGain)}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Gain/Loss</p>
+              <p className={`text-2xl font-bold ${getPerformanceColor(totalPerformance)}`}>
+                {formatCurrency(totalGainLoss)}
               </p>
+            </div>
+            <div className="p-3 bg-warning-100 rounded-lg">
+              {getPerformanceIcon(totalPerformance)}
             </div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="flex items-center">
-            <div className="p-2 bg-info-100 rounded-lg">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Performance</p>
+              <p className={`text-2xl font-bold ${getPerformanceColor(totalPerformance)}`}>
+                {totalPerformance.toFixed(2)}%
+              </p>
+            </div>
+            <div className="p-3 bg-info-100 rounded-lg">
               <ChartBarIcon className="w-6 h-6 text-info-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Gain %</p>
-              <p className={`text-2xl font-bold ${getGainColor(overallGainPercentage)}`}>
-                {overallGainPercentage.toFixed(1)}%
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="flex items-center">
-            <div className="p-2 bg-warning-100 rounded-lg">
-              <ChartBarIcon className="w-6 h-6 text-warning-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Portfolios</p>
-              <p className="text-2xl font-bold text-gray-900">{portfolios.length}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Portfolio Selector */}
-      <div className="card">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Portfolio</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {portfolios.map((portfolio) => (
-            <div
-              key={portfolio.id}
-              onClick={() => setSelectedPortfolio(portfolio)}
-              className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                selectedPortfolio?.id === portfolio.id
-                  ? 'border-primary-500 bg-primary-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <h3 className="font-semibold text-gray-900">{portfolio.name}</h3>
-              <p className="text-sm text-gray-600">{portfolio.description}</p>
-              <div className="mt-2">
-                <p className="text-lg font-bold text-gray-900">
-                  {formatCurrency(portfolio.totalValue)}
-                </p>
-                <p className={`text-sm ${getGainColor(portfolio.totalGain)}`}>
-                  {formatCurrency(portfolio.totalGain)} ({portfolio.gainPercentage.toFixed(1)}%)
-                </p>
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance by Investment</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={performanceData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip formatter={(value) => `${value.toFixed(2)}%`} />
+              <Line type="monotone" dataKey="performance" stroke="#3B82F6" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Portfolio Distribution</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={typeDistribution}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {typeDistribution.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => formatCurrency(value)} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Investments List */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-gray-900">Your Investments</h2>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2"
+          >
+            <PlusIcon className="w-4 h-4" />
+            <span>Add Investment</span>
+          </button>
+        </div>
+        <div className="divide-y divide-gray-200">
+          {investments.map((investment) => (
+            <div key={investment.id} className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <div className={`w-3 h-3 rounded-full ${getTypeColor(investment.type)}`}></div>
+                    <h3 className="text-lg font-semibold text-gray-900">{investment.name}</h3>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(investment.risk)}`}>
+                      {investment.risk} risk
+                    </span>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPerformanceColor(investment.performance)}`}>
+                      {investment.performance > 0 ? '+' : ''}{investment.performance.toFixed(2)}%
+                    </span>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 mb-3">{investment.description}</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+                    <div>
+                      <p className="text-sm text-gray-500">Invested Amount</p>
+                      <p className="text-lg font-semibold text-gray-900">{formatCurrency(investment.amount)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Current Value</p>
+                      <p className="text-lg font-semibold text-gray-900">{formatCurrency(investment.currentValue)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Gain/Loss</p>
+                      <p className={`text-lg font-semibold ${getPerformanceColor(investment.performance)}`}>
+                        {formatCurrency(investment.currentValue - investment.amount)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Purchase Date</p>
+                      <p className="text-lg font-semibold text-gray-900">{new Date(investment.purchaseDate).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span className="capitalize">{getTypeLabel(investment.type)}</span>
+                    <span>Purchased: {new Date(investment.purchaseDate).toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                <div className="ml-4 flex flex-col space-y-2">
+                  <button
+                    onClick={() => {
+                      const newValue = prompt('Enter new current value:', investment.currentValue);
+                      if (newValue && !isNaN(newValue)) {
+                        updateInvestmentValue(investment.id, parseFloat(newValue));
+                      }
+                    }}
+                    className="px-3 py-1 bg-primary-100 text-primary-700 rounded text-xs font-medium hover:bg-primary-200 transition-colors"
+                  >
+                    Update Value
+                  </button>
+                  <button
+                    onClick={() => deleteInvestment(investment.id)}
+                    className="px-3 py-1 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200 transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Selected Portfolio Details */}
-      {selectedPortfolio && (
-        <div className="card">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {selectedPortfolio.name} - Portfolio Details
-            </h2>
-            <span className="px-2 py-1 text-xs font-medium bg-primary-100 text-primary-600 rounded-full">
-              {selectedPortfolio.type}
-            </span>
-          </div>
-
-          {/* Portfolio Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-600">Total Value</p>
-              <p className="text-xl font-bold text-gray-900">
-                {formatCurrency(selectedPortfolio.totalValue)}
-              </p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-600">Total Gain</p>
-              <p className={`text-xl font-bold ${getGainColor(selectedPortfolio.totalGain)}`}>
-                {formatCurrency(selectedPortfolio.totalGain)}
-              </p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-600">Gain %</p>
-              <p className={`text-xl font-bold ${getGainColor(selectedPortfolio.gainPercentage)}`}>
-                {selectedPortfolio.gainPercentage.toFixed(1)}%
-              </p>
-            </div>
-          </div>
-
-          {/* Investments List */}
-          <div className="space-y-4">
-            <h3 className="text-md font-semibold text-gray-900">Investments</h3>
-            {selectedPortfolio.investments.map((investment) => {
-              const GainIcon = getGainIcon(investment.gain);
-              return (
-                <div key={investment.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3">
-                        <h4 className="text-lg font-semibold text-gray-900">
-                          {investment.name}
-                        </h4>
-                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
-                          {investment.symbol}
-                        </span>
-                        <span className="px-2 py-1 text-xs font-medium bg-primary-100 text-primary-600 rounded-full">
-                          {investment.type.toUpperCase()}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">{investment.category}</p>
-                      <div className="flex items-center mt-2 space-x-4">
-                        <span className="text-sm text-gray-500">
-                          Quantity: {investment.quantity}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          Purchase: {formatDate(investment.purchaseDate)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-gray-900">
-                        {formatCurrency(investment.currentPrice * investment.quantity)}
-                      </p>
-                      <div className="flex items-center justify-end space-x-1">
-                        <GainIcon className={`w-4 h-4 ${getGainColor(investment.gain)}`} />
-                        <p className={`text-sm ${getGainColor(investment.gain)}`}>
-                          {formatCurrency(investment.gain)} ({investment.gainPercentage.toFixed(1)}%)
-                        </p>
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        {formatCurrency(investment.currentPrice)} per unit
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Add Investment Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Add Investment</h2>
-              <button 
-                onClick={() => setShowAddModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <XMarkIcon className="w-6 h-6" />
-              </button>
-            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Add New Investment</h2>
             
             <div className="space-y-4">
               <div>
@@ -418,68 +420,43 @@ const Investments = () => {
                   type="text"
                   value={newInvestment.name}
                   onChange={(e) => setNewInvestment({...newInvestment, name: e.target.value})}
-                  className="input-field w-full"
-                  placeholder="e.g., Apple Inc."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="e.g., Apple Inc. (AAPL)"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Symbol/Ticker</label>
-                <input
-                  type="text"
-                  value={newInvestment.symbol}
-                  onChange={(e) => setNewInvestment({...newInvestment, symbol: e.target.value})}
-                  className="input-field w-full"
-                  placeholder="e.g., AAPL"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Investment Type</label>
                 <select
                   value={newInvestment.type}
                   onChange={(e) => setNewInvestment({...newInvestment, type: e.target.value})}
-                  className="input-field w-full"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   {investmentTypes.map(type => (
-                    <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                    <option key={type.value} value={type.value}>{type.label}</option>
                   ))}
                 </select>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select
-                  value={newInvestment.category}
-                  onChange={(e) => setNewInvestment({...newInvestment, category: e.target.value})}
-                  className="input-field w-full"
-                >
-                  <option value="">Select category</option>
-                  {investmentCategories.map(category => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                <input
-                  type="number"
-                  value={newInvestment.quantity}
-                  onChange={(e) => setNewInvestment({...newInvestment, quantity: e.target.value})}
-                  className="input-field w-full"
-                  placeholder="0"
-                  step="1"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Price per Unit (£)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Invested Amount</label>
                 <input
                   type="number"
                   value={newInvestment.amount}
                   onChange={(e) => setNewInvestment({...newInvestment, amount: e.target.value})}
-                  className="input-field w-full"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="0.00"
+                  step="0.01"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Current Value (Optional)</label>
+                <input
+                  type="number"
+                  value={newInvestment.currentValue}
+                  onChange={(e) => setNewInvestment({...newInvestment, currentValue: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="0.00"
                   step="0.01"
                 />
@@ -491,7 +468,18 @@ const Investments = () => {
                   type="date"
                   value={newInvestment.purchaseDate}
                   onChange={(e) => setNewInvestment({...newInvestment, purchaseDate: e.target.value})}
-                  className="input-field w-full"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                <input
+                  type="text"
+                  value={newInvestment.description}
+                  onChange={(e) => setNewInvestment({...newInvestment, description: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Brief description of the investment"
                 />
               </div>
             </div>
@@ -499,84 +487,15 @@ const Investments = () => {
             <div className="flex space-x-3 mt-6">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="flex-1 btn-secondary"
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddInvestment}
-                className="flex-1 btn-primary"
+                className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
               >
                 Add Investment
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Portfolio Modal */}
-      {showPortfolioModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Create New Portfolio</h2>
-              <button 
-                onClick={() => setShowPortfolioModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <XMarkIcon className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Portfolio Name</label>
-                <input
-                  type="text"
-                  value={newPortfolio.name}
-                  onChange={(e) => setNewPortfolio({...newPortfolio, name: e.target.value})}
-                  className="input-field w-full"
-                  placeholder="e.g., Growth Portfolio"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
-                  value={newPortfolio.description}
-                  onChange={(e) => setNewPortfolio({...newPortfolio, description: e.target.value})}
-                  className="input-field w-full"
-                  rows="3"
-                  placeholder="Describe your portfolio..."
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Portfolio Type</label>
-                <select
-                  value={newPortfolio.type}
-                  onChange={(e) => setNewPortfolio({...newPortfolio, type: e.target.value})}
-                  className="input-field w-full"
-                >
-                  {portfolioTypes.map(type => (
-                    <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            
-            <div className="flex space-x-3 mt-6">
-              <button
-                onClick={() => setShowPortfolioModal(false)}
-                className="flex-1 btn-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddPortfolio}
-                className="flex-1 btn-primary"
-              >
-                Create Portfolio
               </button>
             </div>
           </div>

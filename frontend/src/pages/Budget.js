@@ -1,475 +1,212 @@
 import React, { useState, useEffect } from 'react';
-import { PlusIcon, ChartBarIcon, CogIcon, XMarkIcon, CheckCircleIcon, InformationCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { BUDGETING_METHODS, calculateBudgetAllocation, validateBudgetMethod, getBudgetMethodTheme } from '../utils/budgetingMethods';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { formatCurrency, useCurrencyListener } from '../utils/currency';
+import { BUDGETING_METHODS } from '../utils/budgetingMethods';
+import { 
+  ChartBarIcon, 
+  ArrowTrendingUpIcon, 
+  ArrowTrendingDownIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon
+} from '@heroicons/react/24/outline';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const Budget = () => {
   const [selectedMethod, setSelectedMethod] = useState('50/30/20');
-  const [monthlyIncome, setMonthlyIncome] = useState(5000);
-  const [budgets, setBudgets] = useState([]);
-  const [budgetAllocations, setBudgetAllocations] = useState({});
-  const [validation, setValidation] = useState({ isValid: true, warnings: [], recommendations: [] });
-  const [showAddBudget, setShowAddBudget] = useState(false);
-  const [newBudget, setNewBudget] = useState({
-    category: '',
-    budget: '',
-    type: 'needs'
+  const [monthlyIncome, setMonthlyIncome] = useState(3200);
+  const [currentCurrency, setCurrentCurrency] = useState('GBP');
+
+  // Listen for currency changes
+  useCurrencyListener((newCurrency) => {
+    setCurrentCurrency(newCurrency);
   });
 
-  // Calculate budget allocations when method or income changes
-  useEffect(() => {
-    try {
-      const allocations = calculateBudgetAllocation(selectedMethod, monthlyIncome);
-      setBudgetAllocations(allocations);
-      
-      // Validate the budget
-      const validationResult = validateBudgetMethod(selectedMethod, allocations, monthlyIncome);
-      setValidation(validationResult);
-      
-      // Save selected method to settings
-      const savedSettings = JSON.parse(localStorage.getItem('financeAppSettings') || '{}');
-      if (!savedSettings.preferences) savedSettings.preferences = {};
-      savedSettings.preferences.budgetingMethod = selectedMethod;
-      localStorage.setItem('financeAppSettings', JSON.stringify(savedSettings));
-      
-    } catch (error) {
-      console.error('Error calculating budget:', error);
-    }
-  }, [selectedMethod, monthlyIncome]);
+  const method = BUDGETING_METHODS[selectedMethod];
 
-  // Load saved settings on mount
-  useEffect(() => {
-    const savedSettings = localStorage.getItem('financeAppSettings');
-    if (savedSettings) {
-      try {
-        const settings = JSON.parse(savedSettings);
-        if (settings.preferences?.budgetingMethod) {
-          setSelectedMethod(settings.preferences.budgetingMethod);
-        }
-      } catch (error) {
-        console.error('Error loading settings:', error);
-      }
-    }
-  }, []);
-
-  const budgetingMethods = [
-    {
-      id: '50/30/20',
-      name: '50/30/20 Rule',
-      description: '50% needs, 30% wants, 20% savings',
-      breakdown: {
-        needs: 50,
-        wants: 30,
-        savings: 20
-      },
-      color: 'primary',
-      icon: '📊'
-    },
-    {
-      id: 'Zero-based',
-      name: 'Zero-Based Budgeting',
-      description: 'Every dollar has a purpose',
-      breakdown: {
-        needs: 60,
-        wants: 25,
-        savings: 15
-      },
-      color: 'success',
-      icon: '🎯'
-    },
-    {
-      id: '70/20/10',
-      name: '70/20/10 Rule',
-      description: '70% living, 20% savings, 10% debt',
-      breakdown: {
-        needs: 70,
-        savings: 20,
-        debt: 10
-      },
-      color: 'warning',
-      icon: '💰'
-    },
-    {
-      id: '60%',
-      name: '60% Solution',
-      description: '60% committed expenses, 40% flexible',
-      breakdown: {
-        committed: 60,
-        flexible: 40
-      },
-      color: 'info',
-      icon: '⚖️'
-    }
-  ];
-
-  // Mock budget data
-  useEffect(() => {
-    const mockBudgets = [
-      { id: 1, category: 'Housing', budget: 1500, spent: 1500, type: 'needs' },
-      { id: 2, category: 'Transportation', budget: 400, spent: 350, type: 'needs' },
-      { id: 3, category: 'Food & Dining', budget: 600, spent: 720, type: 'needs' },
-      { id: 4, category: 'Entertainment', budget: 300, spent: 250, type: 'wants' },
-      { id: 5, category: 'Shopping', budget: 200, spent: 180, type: 'wants' },
-      { id: 6, category: 'Savings', budget: 1000, spent: 1000, type: 'savings' },
-      { id: 7, category: 'Emergency Fund', budget: 500, spent: 500, type: 'savings' }
-    ];
-    setBudgets(mockBudgets);
-  }, []);
-
-  const getCurrentMethod = () => {
-    return budgetingMethods.find(method => method.id === selectedMethod);
+  // Calculate allocations based on income
+  const calculateAllocations = () => {
+    return method.categories.map(category => ({
+      ...category,
+      amount: (monthlyIncome * category.percentage) / 100
+    }));
   };
 
-  const calculateBudgetAllocation = () => {
-    const method = getCurrentMethod();
-    const allocation = {};
-    
-    Object.entries(method.breakdown).forEach(([key, percentage]) => {
-      allocation[key] = (monthlyIncome * percentage) / 100;
-    });
-    
-    return allocation;
+  const allocations = calculateAllocations();
+
+  // Mock budget data - replace with real API data
+  const budgetData = {
+    food: { budget: 450, spent: 380, remaining: 70 },
+    transport: { budget: 300, spent: 320, remaining: -20 },
+    entertainment: { budget: 200, spent: 150, remaining: 50 },
+    utilities: { budget: 150, spent: 145, remaining: 5 },
+    housing: { budget: 1200, spent: 1200, remaining: 0 }
   };
 
-  const getProgressColor = (spent, budget) => {
-    const percentage = (spent / budget) * 100;
-    if (percentage >= 90) return 'text-danger-600';
-    if (percentage >= 75) return 'text-warning-600';
-    return 'text-success-600';
+  const chartData = allocations.map(allocation => ({
+    name: allocation.name,
+    value: allocation.amount,
+    color: allocation.color
+  }));
+
+  const getStatusColor = (remaining) => {
+    if (remaining >= 0) return 'text-success-600';
+    return 'text-danger-600';
   };
 
-  const getProgressBarColor = (spent, budget) => {
-    const percentage = (spent / budget) * 100;
-    if (percentage >= 90) return 'bg-danger-500';
-    if (percentage >= 75) return 'bg-warning-500';
-    return 'bg-success-500';
+  const getStatusIcon = (remaining) => {
+    if (remaining >= 0) return <CheckCircleIcon className="w-5 h-5 text-success-600" />;
+    return <ExclamationTriangleIcon className="w-5 h-5 text-danger-600" />;
   };
-
-  const getBudgetAlerts = () => {
-    return budgets.filter(budget => {
-      const percentage = (budget.spent / budget.budget) * 100;
-      return percentage >= 75;
-    });
-  };
-
-  const getMethodColor = (color) => {
-    switch (color) {
-      case 'primary': return 'border-primary-500 bg-primary-50';
-      case 'success': return 'border-success-500 bg-success-50';
-      case 'warning': return 'border-warning-500 bg-warning-50';
-      case 'info': return 'border-info-500 bg-info-50';
-      default: return 'border-gray-300 bg-gray-50';
-    }
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: 'GBP'
-    }).format(amount);
-  };
-
-  const handleAddBudget = () => {
-    if (newBudget.category && newBudget.budget) {
-      const budget = {
-        id: Date.now(),
-        category: newBudget.category,
-        budget: parseFloat(newBudget.budget),
-        spent: 0,
-        type: newBudget.type
-      };
-      setBudgets([...budgets, budget]);
-      setNewBudget({
-        category: '',
-        budget: '',
-        type: 'needs'
-      });
-      setShowAddBudget(false);
-    }
-  };
-
-  const budgetTypes = ['needs', 'wants', 'savings'];
-  const budgetCategories = [
-    'Housing', 'Transportation', 'Food & Dining', 'Utilities', 
-    'Healthcare', 'Entertainment', 'Shopping', 'Education', 'Savings', 'Emergency Fund'
-  ];
-
-  const allocation = calculateBudgetAllocation();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Budget Management</h1>
-          <p className="text-gray-600">Track and manage your spending with smart budgeting</p>
-        </div>
-        <button 
-          onClick={() => setShowAddBudget(true)}
-          className="btn-primary flex items-center cursor-pointer"
-        >
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Add Budget
-        </button>
+      <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-2">Budget Planning</h1>
+        <p className="text-primary-100">
+          Choose your budgeting method and track your spending
+        </p>
       </div>
 
       {/* Budgeting Method Selection */}
-      <div className="card">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Budgeting Method</h2>
-          <div className="flex items-center space-x-2">
-            <CogIcon className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-500">Customize</span>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {budgetingMethods.map((method) => (
-            <button
-              key={method.id}
-              onClick={() => setSelectedMethod(method.id)}
-              className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                selectedMethod === method.id
-                  ? getMethodColor(method.color)
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Choose Your Method</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Object.entries(BUDGETING_METHODS).map(([key, method]) => (
+            <div
+              key={key}
+              onClick={() => setSelectedMethod(key)}
+              className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                selectedMethod === key
+                  ? `border-${method.theme.primary}-500 bg-${method.theme.bg}`
+                  : 'border-gray-200 hover:border-gray-300'
               }`}
             >
-              <div className="flex items-center space-x-2 mb-2">
-                <span className="text-lg">{method.icon}</span>
-                <h3 className="font-semibold text-gray-900">{method.name}</h3>
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl">{method.icon}</span>
+                <div>
+                  <h3 className="font-semibold text-gray-900">{method.name}</h3>
+                  <p className="text-sm text-gray-600">{method.description}</p>
+                </div>
               </div>
-              <p className="text-sm text-gray-600">{method.description}</p>
-            </button>
+            </div>
           ))}
         </div>
       </div>
 
       {/* Income Input */}
-      <div className="card">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Monthly Income</h2>
         <div className="flex items-center space-x-4">
           <input
             type="number"
             value={monthlyIncome}
-            onChange={(e) => setMonthlyIncome(Number(e.target.value))}
-            className="input-field w-48"
-            placeholder="Enter monthly income"
+            onChange={(e) => setMonthlyIncome(parseFloat(e.target.value) || 0)}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            placeholder="Enter your monthly income"
           />
-          <span className="text-gray-600">per month</span>
+          <span className="text-gray-600 font-medium">
+            {formatCurrency(monthlyIncome)}
+          </span>
         </div>
       </div>
 
-      {/* Budget Allocation */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Allocation Chart */}
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Budget Allocation</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={Object.entries(allocation).map(([key, value]) => ({ name: key, amount: value }))}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip formatter={(value) => formatCurrency(value)} />
-              <Bar dataKey="amount" fill="#3B82F6" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Allocation Breakdown */}
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Allocation Breakdown</h2>
-          <div className="space-y-4">
-            {Object.entries(allocation).map(([category, amount]) => (
-              <div key={category} className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-900 capitalize">{category}</p>
-                  <p className="text-sm text-gray-500">
-                    {getCurrentMethod().breakdown[category]}% of income
-                  </p>
-                </div>
-                <p className="font-semibold text-gray-900">{formatCurrency(amount)}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Budget Alerts */}
-      {getBudgetAlerts().length > 0 && (
-        <div className="card bg-warning-50 border-warning-200">
-          <h2 className="text-lg font-semibold text-warning-900 mb-4">⚠️ Budget Alerts</h2>
-          <div className="space-y-3">
-            {getBudgetAlerts().map((budget) => (
-              <div key={budget.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">{budget.category}</p>
-                  <p className="text-sm text-gray-600">
-                    {((budget.spent / budget.budget) * 100).toFixed(1)}% of budget used
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-warning-600">
-                    {formatCurrency(budget.spent)} / {formatCurrency(budget.budget)}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {budget.spent > budget.budget ? 'Over budget' : 'Near limit'}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Budget Categories */}
-      <div className="card">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">Budget Categories</h2>
-          <div className="flex items-center space-x-2">
-            <ChartBarIcon className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-500">View Analytics</span>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {budgets.map((budget) => (
-            <div key={budget.id} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-3 h-3 rounded-full ${
-                    budget.type === 'needs' ? 'bg-danger-500' :
-                    budget.type === 'wants' ? 'bg-warning-500' : 'bg-success-500'
-                  }`}></div>
-                  <h3 className="font-medium text-gray-900">{budget.category}</h3>
-                  <span className={`badge ${
-                    budget.type === 'needs' ? 'badge-danger' :
-                    budget.type === 'wants' ? 'badge-warning' : 'badge-success'
-                  }`}>
-                    {budget.type}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <p className={`font-semibold ${getProgressColor(budget.spent, budget.budget)}`}>
-                    {formatCurrency(budget.spent)} / {formatCurrency(budget.budget)}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {((budget.spent / budget.budget) * 100).toFixed(1)}% used
-                  </p>
-                </div>
-              </div>
-              
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full ${getProgressBarColor(budget.spent, budget.budget)}`}
-                  style={{ width: `${Math.min((budget.spent / budget.budget) * 100, 100)}%` }}
-                ></div>
-              </div>
-              
-              {budget.spent > budget.budget && (
-                <p className="text-sm text-danger-600 mt-2">
-                  ⚠️ You're over budget by {formatCurrency(budget.spent - budget.budget)}
-                </p>
-              )}
+      {/* Method Rules */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Method Rules</h2>
+        <div className="space-y-2">
+          {method.rules.map((rule, index) => (
+            <div key={index} className="flex items-start space-x-3">
+              <div className="w-2 h-2 bg-primary-600 rounded-full mt-2"></div>
+              <p className="text-gray-700">{rule}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Budget Tips */}
-      <div className="card bg-gradient-to-r from-primary-50 to-primary-100 border-primary-200">
-        <h3 className="font-semibold text-primary-900 mb-3">💡 Budgeting Tips</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-primary-800">
-          <div>
-            <p className="font-medium mb-1">• Track every expense</p>
-            <p>Use the app to log all your transactions for better insights</p>
-          </div>
-          <div>
-            <p className="font-medium mb-1">• Review weekly</p>
-            <p>Check your progress regularly to stay on track</p>
-          </div>
-          <div>
-            <p className="font-medium mb-1">• Adjust as needed</p>
-            <p>Life changes, so should your budget</p>
-          </div>
-          <div>
-            <p className="font-medium mb-1">• Emergency fund first</p>
-            <p>Prioritize building your emergency fund</p>
+      {/* Budget Allocation Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Budget Allocation</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => formatCurrency(value)} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Allocation Details</h2>
+          <div className="space-y-4">
+            {allocations.map((allocation) => (
+              <div key={allocation.name} className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-4 h-4 rounded-full ${allocation.color}`}></div>
+                  <div>
+                    <p className="font-medium text-gray-900">{allocation.name}</p>
+                    <p className="text-sm text-gray-500">{allocation.percentage}%</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-gray-900">{formatCurrency(allocation.amount)}</p>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {allocation.examples.slice(0, 2).join(', ')}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Add Budget Modal */}
-      {showAddBudget && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Add Budget Category</h2>
-              <button 
-                onClick={() => setShowAddBudget(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <XMarkIcon className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select
-                  value={newBudget.category}
-                  onChange={(e) => setNewBudget({...newBudget, category: e.target.value})}
-                  className="input-field w-full"
-                >
-                  <option value="">Select category</option>
-                  {budgetCategories.map(category => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
+      {/* Current Budget Status */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Current Budget Status</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Object.entries(budgetData).map(([category, budget]) => (
+            <div key={category} className="p-4 border border-gray-200 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-medium text-gray-900 capitalize">{category}</h3>
+                {getStatusIcon(budget.remaining)}
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Budget Amount</label>
-                <input
-                  type="number"
-                  value={newBudget.budget}
-                  onChange={(e) => setNewBudget({...newBudget, budget: e.target.value})}
-                  className="input-field w-full"
-                  placeholder="0.00"
-                  step="0.01"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                <select
-                  value={newBudget.type}
-                  onChange={(e) => setNewBudget({...newBudget, type: e.target.value})}
-                  className="input-field w-full"
-                >
-                  {budgetTypes.map(type => (
-                    <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
-                  ))}
-                </select>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Budget:</span>
+                  <span className="font-medium">{formatCurrency(budget.budget)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Spent:</span>
+                  <span className="font-medium">{formatCurrency(budget.spent)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Remaining:</span>
+                  <span className={`font-medium ${getStatusColor(budget.remaining)}`}>
+                    {formatCurrency(budget.remaining)}
+                  </span>
+                </div>
+                {budget.remaining < 0 && (
+                  <div className="mt-2 p-2 bg-danger-50 border border-danger-200 rounded text-xs text-danger-700">
+                    ⚠️ You're over budget by {formatCurrency(budget.spent - budget.budget)}
+                  </div>
+                )}
               </div>
             </div>
-            
-            <div className="flex space-x-3 mt-6">
-              <button
-                onClick={() => setShowAddBudget(false)}
-                className="flex-1 btn-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddBudget}
-                className="flex-1 btn-primary"
-              >
-                Add Budget
-              </button>
-            </div>
-          </div>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 };

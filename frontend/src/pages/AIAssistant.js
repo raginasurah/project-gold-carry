@@ -9,6 +9,7 @@ const AIAssistant = () => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -40,7 +41,7 @@ const AIAssistant = () => {
     "Investment advice for beginners"
   ];
 
-  const sendMessage = async (messageText) => {
+  const sendMessage = async (messageText, retryAttempt = 0) => {
     if (!messageText.trim()) return;
 
     const userMessage = {
@@ -55,9 +56,19 @@ const AIAssistant = () => {
     setIsLoading(true);
 
     try {
+      console.log('Sending message to AI:', messageText);
+      console.log('API URL:', `${API_BASE_URL}/ai/chat`);
+      
       const response = await axios.post(`${API_BASE_URL}/ai/chat`, {
         message: messageText
+      }, {
+        timeout: 30000, // 30 second timeout
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
+
+      console.log('AI response received:', response.data);
 
       const aiMessage = {
         id: Date.now() + 1,
@@ -67,15 +78,80 @@ const AIAssistant = () => {
       };
 
       setMessages(prev => [...prev, aiMessage]);
+      setRetryCount(0); // Reset retry count on success
     } catch (error) {
-      console.error('AI chat error:', error);
-      const errorMessage = {
+      console.error('AI chat error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          timeout: error.config?.timeout
+        }
+      });
+
+      let errorMessage = "I'm sorry, I'm having trouble connecting right now. Please try again later.";
+      
+      // Provide more specific error messages based on the error type
+      if (error.response) {
+        // Server responded with error status
+        const status = error.response.status;
+        const errorData = error.response.data;
+        
+        if (status === 401) {
+          errorMessage = "Authentication error. Please log in again.";
+        } else if (status === 403) {
+          errorMessage = "Access denied. Please check your permissions.";
+        } else if (status === 404) {
+          errorMessage = "AI service not found. Please contact support.";
+        } else if (status === 429) {
+          errorMessage = "Too many requests. Please wait a moment and try again.";
+        } else if (status >= 500) {
+          errorMessage = `Server error (${status}). The AI service is temporarily unavailable. Please try again later.`;
+        } else {
+          errorMessage = `Error ${status}: ${errorData?.detail || errorData?.message || 'Unknown error'}`;
+        }
+      } else if (error.request) {
+        // Request was made but no response received
+        if (error.code === 'ECONNABORTED') {
+          errorMessage = "Request timed out. The AI service is taking too long to respond. Please try again.";
+        } else {
+          errorMessage = "Network error. Please check your internet connection and try again.";
+        }
+      } else {
+        // Something else happened
+        errorMessage = `Unexpected error: ${error.message}`;
+      }
+
+      // Add retry logic for certain errors
+      if (retryAttempt < 2 && (error.response?.status >= 500 || error.request)) {
+        const retryDelay = Math.pow(2, retryAttempt) * 1000; // Exponential backoff
+        console.log(`Retrying in ${retryDelay}ms (attempt ${retryAttempt + 1})`);
+        
+        setTimeout(() => {
+          sendMessage(messageText, retryAttempt + 1);
+        }, retryDelay);
+        
+        const retryMessage = {
+          id: Date.now() + 1,
+          type: 'ai',
+          content: `Connection issue detected. Retrying... (attempt ${retryAttempt + 1}/3)`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, retryMessage]);
+        return;
+      }
+
+      const finalErrorMessage = {
         id: Date.now() + 1,
         type: 'ai',
-        content: "I'm sorry, I'm having trouble connecting right now. Please try again later.",
+        content: errorMessage,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, finalErrorMessage]);
+      setRetryCount(retryAttempt);
     } finally {
       setIsLoading(false);
     }
